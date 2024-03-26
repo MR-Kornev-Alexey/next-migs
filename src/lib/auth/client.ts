@@ -1,12 +1,8 @@
 'use client';
+import axios from 'axios';
 
 import type { User } from '@/types/user';
 
-function generateToken(): string {
-  const arr = new Uint8Array(12);
-  window.crypto.getRandomValues(arr);
-  return Array.from(arr, (v) => v.toString(16).padStart(2, '0')).join('');
-}
 
 const user = {
   id: 'USR-000',
@@ -17,10 +13,10 @@ const user = {
 } satisfies User;
 
 export interface SignUpParams {
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
   password: string;
+  terms: boolean;
 }
 
 export interface SignInWithOAuthParams {
@@ -37,13 +33,26 @@ export interface ResetPasswordParams {
 }
 
 class AuthClient {
-  async signUp(_: SignUpParams): Promise<{ error?: string }> {
-    // Make API request
+  private responseLogin: any;
+  async signUp(signUpParams: SignUpParams): Promise<{ error?: string }> {
+    console.log(signUpParams)
+    try {
+      const headers = { 'Content-Type': 'application/json' }; // Установка заголовка Content-Type
 
+      const response = await axios.post(
+        'http://localhost:5000/auth/register',
+        JSON.stringify(signUpParams), // Преобразование объекта в JSON-строку
+        { headers } // Передача заголовков в конфигурацию запроса
+      );
+
+    } catch (error) {
+      // Обработка ошибок
+      console.error('Произошла ошибка:', error.message);
+      return { error: error.message };
+    }
     // We do not handle the API, so we'll just generate a token and store it in localStorage.
-    const token = generateToken();
-    localStorage.setItem('custom-auth-token', token);
-
+    // const token = generateToken();
+    // localStorage.setItem('custom-auth-token', token);
     return {};
   }
 
@@ -53,17 +62,26 @@ class AuthClient {
 
   async signInWithPassword(params: SignInWithPasswordParams): Promise<{ error?: string }> {
     const { email, password } = params;
-
+    console.log(params)
     // Make API request
-
-    // We do not handle the API, so we'll check if the credentials match with the hardcoded ones.
-    if (email !== 'sofia@devias.io' || password !== 'Secret1') {
-      return { error: 'Invalid credentials' };
+    try {
+     const token =  localStorage.getItem('custom-auth-token');
+      const  headers= {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` // Добавляем токен в заголовок Authorization
+        }
+      const  responseLogin = await axios.post(
+        'http://localhost:5000/auth/login',
+        JSON.stringify(params), // Преобразование объекта в JSON-строку
+        { headers } // Передача заголовков в конфигурацию запроса
+      );
+      console.log(responseLogin)
+      localStorage.setItem('custom-auth-token', JSON.stringify(responseLogin.data.user));
+    } catch (error) {
+      // Обработка ошибок
+      console.error('Произошла ошибка:', error.message);
+      return { error: error.message };
     }
-
-    const token = generateToken();
-    localStorage.setItem('custom-auth-token', token);
-
     return {};
   }
 
@@ -90,7 +108,6 @@ class AuthClient {
 
   async signOut(): Promise<{ error?: string }> {
     localStorage.removeItem('custom-auth-token');
-
     return {};
   }
 }

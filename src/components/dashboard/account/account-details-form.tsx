@@ -14,74 +14,86 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import Select from '@mui/material/Select';
 import Grid from '@mui/material/Unstable_Grid2';
 
-const states = [
-  { value: 'alabama', label: 'Alabama' },
-  { value: 'new-york', label: 'New York' },
-  { value: 'san-francisco', label: 'San Francisco' },
-  { value: 'los-angeles', label: 'Los Angeles' },
-] as const;
+const defaultValues = { firstName: '',  secondName: '', email: '', phone: '', telegram: '', position: '', organisation: '', city: '' } satisfies Values;
+import { z } from 'zod';
+
+const Cyrillic = z.string().regex(/^[А-Яа-яЁё]+$/);
+
+const schema = z.object({
+  firstName: Cyrillic,
+  lastName: Cyrillic,
+  // Добавьте другие поля, если необходимо
+});
+const onSubmit = (data) => {
+  console.log(data); // Вы можете отправить данные после успешной валидации
+};
 
 export function AccountDetailsForm(): React.JSX.Element {
   return (
-    <form
+    <formА
       onSubmit={(event) => {
-        event.preventDefault();
+        console.log(event);
       }}
     >
       <Card>
-        <CardHeader subheader="The information can be edited" title="Profile" />
+        <CardHeader subheader="Информацию можно изменить" title="Мой профиль" />
         <Divider />
         <CardContent>
           <Grid container spacing={3}>
             <Grid md={6} xs={12}>
               <FormControl fullWidth required>
-                <InputLabel>First name</InputLabel>
-                <OutlinedInput defaultValue="Sofia" label="First name" name="firstName" />
+                <InputLabel>Имя</InputLabel>
+                <OutlinedInput defaultValue="" label="Имя" name="firstName" />
               </FormControl>
             </Grid>
             <Grid md={6} xs={12}>
               <FormControl fullWidth required>
-                <InputLabel>Last name</InputLabel>
-                <OutlinedInput defaultValue="Rivers" label="Last name" name="lastName" />
+                <InputLabel>Фамилия</InputLabel>
+                <OutlinedInput defaultValue="" label="Фамилия" name="lastName" />
               </FormControl>
             </Grid>
             <Grid md={6} xs={12}>
               <FormControl fullWidth required>
-                <InputLabel>Email address</InputLabel>
-                <OutlinedInput defaultValue="sofia@devias.io" label="Email address" name="email" />
+                <InputLabel>Email адрес</InputLabel>
+                <OutlinedInput defaultValue="" label="Email адрес" name="email" />
               </FormControl>
             </Grid>
             <Grid md={6} xs={12}>
               <FormControl fullWidth>
-                <InputLabel>Phone number</InputLabel>
-                <OutlinedInput label="Phone number" name="phone" type="tel" />
+                <InputLabel>Номер телефона</InputLabel>
+                <OutlinedInput label="Номер телефона" name="phone" type="tel" />
               </FormControl>
             </Grid>
             <Grid md={6} xs={12}>
               <FormControl fullWidth>
-                <InputLabel>State</InputLabel>
-                <Select defaultValue="New York" label="State" name="state" variant="outlined">
-                  {states.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
+                <InputLabel>Telegram</InputLabel>
+                <OutlinedInput label="Telegram" />
               </FormControl>
             </Grid>
             <Grid md={6} xs={12}>
               <FormControl fullWidth>
-                <InputLabel>City</InputLabel>
+                <InputLabel>Должность</InputLabel>
+                <OutlinedInput label="Telegram" />
+              </FormControl>
+            </Grid>
+            <Grid md={6} xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>Организация</InputLabel>
+                <OutlinedInput label="Telegram" />
+              </FormControl>
+            </Grid>
+            <Grid md={6} xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>Город</InputLabel>
                 <OutlinedInput label="City" />
               </FormControl>
             </Grid>
           </Grid>
         </CardContent>
-        <Divider />
         <CardActions sx={{ justifyContent: 'flex-end' }}>
-          <Button variant="contained">Save details</Button>
+          <Button type="submit" variant="contained">Сохранить</Button>
         </CardActions>
       </Card>
-    </form>
+    </formА>
   );
 }

@@ -21,15 +21,16 @@ import { z as zod } from 'zod';
 import { paths } from '@/paths';
 import { authClient } from '@/lib/auth/client';
 import { useUser } from '@/hooks/use-user';
+import Box from "@mui/material/Box";
 
 const schema = zod.object({
-  email: zod.string().min(1, { message: 'Email is required' }).email(),
-  password: zod.string().min(1, { message: 'Password is required' }),
+  email: zod.string().min(1, { message: 'Ввод email обязателен ' }).email(),
+  password: zod.string().min(1, { message: 'Ввод пароля обязателен'  }),
 });
 
 type Values = zod.infer<typeof schema>;
 
-const defaultValues = { email: 'sofia@devias.io', password: 'Secret1' } satisfies Values;
+const defaultValues = { email: '', password: '' } satisfies Values;
 
 export function SignInForm(): React.JSX.Element {
   const router = useRouter();
@@ -87,7 +88,7 @@ export function SignInForm(): React.JSX.Element {
             name="email"
             render={({ field }) => (
               <FormControl error={Boolean(errors.email)}>
-                <InputLabel>Email address</InputLabel>
+                <InputLabel>Email адрес</InputLabel>
                 <OutlinedInput {...field} label="Email адрес" type="email" />
                 {errors.email ? <FormHelperText>{errors.email.message}</FormHelperText> : null}
               </FormControl>
@@ -134,20 +135,27 @@ export function SignInForm(): React.JSX.Element {
           </div>
           {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
           <Button disabled={isPending} type="submit" variant="contained">
-            Войти
+            {isPending ? <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="22" height="22">
+              <radialGradient id="a11" cx=".66" fx=".66" cy=".3125" fy=".3125" gradientTransform="scale(1.5)">
+                <stop offset="0" stopColor="#635bff"></stop>
+                <stop offset=".3" stopColor="#635bff" stopOpacity="1"></stop>
+                <stop offset=".6" stopColor="#635bff" stopOpacity=".6"></stop>
+                <stop offset=".8" stopColor="#635bff" stopOpacity=".3"></stop>
+                <stop offset="1" stopColor="#635bff" stopOpacity="0"></stop>
+              </radialGradient>
+              <circle transform-origin="center" fill="none" stroke="url(#a11)" strokeWidth="30" strokeLinecap="round"
+                      strokeDasharray="200 1000" strokeDashoffset="0" cx="100" cy="100" r="70">
+                <animateTransform type="rotate" attributeName="transform" calcMode="spline" dur="2.3" values="360;0"
+                                  keyTimes="0;1" keySplines="0 0 1 1" repeatCount="indefinite"></animateTransform>
+              </circle>
+              <circle transform-origin="center" fill="none" opacity=".2" stroke="#114B5C" stroke-width="30"
+                      strokeLinecap="round" cx="100" cy="100" r="70"></circle>
+            </svg> :<Box>
+              Войти</Box>
+            }
           </Button>
         </Stack>
       </form>
-      <Alert color="warning">
-        Use{' '}
-        <Typography component="span" sx={{ fontWeight: 700 }} variant="inherit">
-          sofia@devias.io
-        </Typography>{' '}
-        with password{' '}
-        <Typography component="span" sx={{ fontWeight: 700 }} variant="inherit">
-          Secret1
-        </Typography>
-      </Alert>
     </Stack>
   );
 }

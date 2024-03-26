@@ -7,6 +7,11 @@ import { Users as UsersIcon } from '@phosphor-icons/react/dist/ssr/Users';
 import { XSquare } from '@phosphor-icons/react/dist/ssr/XSquare';
 import { Table } from '@phosphor-icons/react/dist/ssr/Table';
 import { ChartBar} from '@phosphor-icons/react/dist/ssr/ChartBar';
+import { Notebook} from '@phosphor-icons/react/dist/ssr/Notebook';
+import { HouseLine } from '@phosphor-icons/react/dist/ssr/HouseLine';
+import { TerminalWindow  as Terminal } from '@phosphor-icons/react/dist/ssr/TerminalWindow';
+import { BookOpenText  as BookOpen } from '@phosphor-icons/react/dist/ssr/BookOpenText';
+
 
 export const navIcons = {
   'chart-pie': ChartPieIcon,
@@ -15,6 +20,10 @@ export const navIcons = {
   'gear-six': GearSixIcon,
   'plugs-connected': PlugsConnectedIcon,
   'x-square': XSquare,
+  'notebook': Notebook,
+  'home': HouseLine,
+  'terminal': Terminal,
+  'log':  BookOpen,
   user: UserIcon,
   users: UsersIcon,
 } as Record<string, Icon>;

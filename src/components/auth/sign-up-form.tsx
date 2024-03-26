@@ -21,15 +21,14 @@ import { z as zod } from 'zod';
 import { paths } from '@/paths';
 import { authClient } from '@/lib/auth/client';
 import { useUser } from '@/hooks/use-user';
+import Box from "@mui/material/Box";
 
-const cyrillicRegex = /^[\u0400-\u04FF]+$/;
+const cyrillicRegex = /^[a-zA-Z0-9_.@]+$/;
 
 const schema = zod.object({
-  firstName: zod.string()
+  name: zod.string()
     .min(1, { message: 'Ввод имени обязателен' })
-    .regex(cyrillicRegex, { message: 'Введ только букв кириллицы' }),
-  lastName: zod.string().min(1, { message: 'Ввод фамилии обязателен' })
-    .regex(cyrillicRegex, { message: 'Введ только букв кириллицы' }),
+    .regex(cyrillicRegex, { message: 'Введ только латиницы, цифры допускаются' }),
   email: zod.string().min(1, { message: 'Вврд email обязателен' }).email(),
   password: zod.string().min(8, { message: 'Минимальное количество 8 знаков' }),
   terms: zod.boolean().refine((value) => value, 'Вы должны согласиться с условиями пользоания и политикой конфидициальности'),
@@ -37,7 +36,7 @@ const schema = zod.object({
 
 type Values = zod.infer<typeof schema>;
 
-const defaultValues = { firstName: '', lastName: '', email: '', password: '', terms: false } satisfies Values;
+const defaultValues = { name: '', email: '', password: '', terms: false } satisfies Values;
 
 export function SignUpForm(): React.JSX.Element {
   const router = useRouter();
@@ -45,6 +44,7 @@ export function SignUpForm(): React.JSX.Element {
   const { checkSession } = useUser();
 
   const [isPending, setIsPending] = React.useState<boolean>(false);
+  const [isMessage, setIsMessage] = React.useState<string>('');
 
   const {
     control,
@@ -62,6 +62,7 @@ export function SignUpForm(): React.JSX.Element {
       if (error) {
         setError('root', { type: 'server', message: error });
         setIsPending(false);
+        setIsMessage('Ошибка ввода, повторите снова')
         return;
       }
 
@@ -90,23 +91,12 @@ export function SignUpForm(): React.JSX.Element {
         <Stack spacing={2}>
           <Controller
             control={control}
-            name="firstName"
+            name="name"
             render={({ field }) => (
-              <FormControl error={Boolean(errors.firstName)}>
-                <InputLabel>Введите имя</InputLabel>
-                <OutlinedInput {...field} label="Введите имя" />
-                {errors.firstName ? <FormHelperText>{errors.firstName.message}</FormHelperText> : null}
-              </FormControl>
-            )}
-          />
-          <Controller
-            control={control}
-            name="lastName"
-            render={({ field }) => (
-              <FormControl error={Boolean(errors.lastName)}>
-                <InputLabel>Введите фамилию</InputLabel>
-                <OutlinedInput {...field} label="Введите фамилию" />
-                {errors.lastName ? <FormHelperText>{errors.lastName.message}</FormHelperText> : null}
+              <FormControl error={Boolean(errors.name)}>
+                <InputLabel>создайте username</InputLabel>
+                <OutlinedInput {...field} label="Введите name" />
+                {errors.name ? <FormHelperText>{errors.name.message}</FormHelperText> : null}
               </FormControl>
             )}
           />
@@ -150,12 +140,31 @@ export function SignUpForm(): React.JSX.Element {
             )}
           />
           {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
+          {errors.root ? <Alert color="error">{isMessage}</Alert> : null}
           <Button disabled={isPending} type="submit" variant="contained">
-            Зарегестрироваться
+            {isPending ? <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="22" height="22">
+              <radialGradient id="a11" cx=".66" fx=".66" cy=".3125" fy=".3125" gradientTransform="scale(1.5)">
+                <stop offset="0" stopColor="#635bff"></stop>
+                <stop offset=".3" stopColor="#635bff" stopOpacity="1"></stop>
+                <stop offset=".6" stopColor="#635bff" stopOpacity=".6"></stop>
+                <stop offset=".8" stopColor="#635bff" stopOpacity=".3"></stop>
+                <stop offset="1" stopColor="#635bff" stopOpacity="0"></stop>
+              </radialGradient>
+              <circle transform-origin="center" fill="none" stroke="url(#a11)" strokeWidth="30" strokeLinecap="round"
+                      strokeDasharray="200 1000" strokeDashoffset="0" cx="100" cy="100" r="70">
+                <animateTransform type="rotate" attributeName="transform" calcMode="spline" dur="2.3" values="360;0"
+                                  keyTimes="0;1" keySplines="0 0 1 1" repeatCount="indefinite"></animateTransform>
+              </circle>
+              <circle transform-origin="center" fill="none" opacity=".2" stroke="#114B5C" stroke-width="30"
+                      strokeLinecap="round" cx="100" cy="100" r="70"></circle>
+            </svg> :<Box>
+              Зарегестрироваться
+            </Box>
+            }
           </Button>
         </Stack>
       </form>
-      <Alert color="warning">Ввод нового пользователя</Alert>
+      {/*<Alert color="warning">Ввод нового пользователя</Alert>*/}
     </Stack>
   );
 }

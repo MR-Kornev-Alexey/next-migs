@@ -47,6 +47,11 @@ export function UserPopover({ anchorEl, onClose, open }: UserPopoverProps): Reac
       logger.error('Sign out error', err);
     }
   }, [checkSession, router]);
+  let email
+  const dataUser = localStorage.getItem('custom-auth-token');// Получение  роли  пользователя из контекста или хранилища
+  if (dataUser != null) {
+    email = JSON.parse(dataUser).email
+  }
 
   return (
     <Popover
@@ -59,7 +64,7 @@ export function UserPopover({ anchorEl, onClose, open }: UserPopoverProps): Reac
       <Box sx={{ p: '16px 20px ' }}>
         <Typography variant="subtitle1">Sofia Rivers</Typography>
         <Typography color="text.secondary" variant="body2">
-          sofia.rivers@devias.io
+          {email}
         </Typography>
       </Box>
       <Divider />
@@ -68,19 +73,19 @@ export function UserPopover({ anchorEl, onClose, open }: UserPopoverProps): Reac
           <ListItemIcon>
             <GearSixIcon fontSize="var(--icon-fontSize-md)" />
           </ListItemIcon>
-          Settings
+          Настройки
         </MenuItem>
         <MenuItem component={RouterLink} href={paths.dashboard.account} onClick={onClose}>
           <ListItemIcon>
             <UserIcon fontSize="var(--icon-fontSize-md)" />
           </ListItemIcon>
-          Profile
+          Мой профиль
         </MenuItem>
         <MenuItem onClick={handleSignOut}>
           <ListItemIcon>
             <SignOutIcon fontSize="var(--icon-fontSize-md)" />
           </ListItemIcon>
-          Sign out
+          Выйти
         </MenuItem>
       </MenuList>
     </Popover>
