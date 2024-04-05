@@ -49,7 +49,7 @@ Within the download you'll find the following directories and files:
 
 ```
 ┌── .editorconfig
-├── .eslintrc.js
+├── .eslintrc.ts
 ├── .gitignore
 ├── CHANGELOG.md
 ├── LICENSE.md

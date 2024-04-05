@@ -5,6 +5,7 @@ import { Layout } from '@/components/auth/layout';
 import { SignUpFormOrganization } from '@/components/auth/sign-up-form-organization';
 import CheckOrganisation from '@/components/auth/check-organization';
 import axios from 'axios';
+import {organizationClient} from "@/lib/organizations/organization-client";
 
 export default function Page(): React.JSX.Element {
   const [initialData, setInitialData] = React.useState(null);
@@ -16,14 +17,10 @@ export default function Page(): React.JSX.Element {
         const headers = {
           'Content-Type': 'application/json'
         };
-        const responseCheckOrganization = await axios.post(
-          'http://localhost:5000/organization/check_organization',
-          JSON.stringify({'inn': "7716852062"}), // Преобразование объекта в JSON-строку
-          { headers } // Передача заголовков в конфигурацию запроса
-        );
-        setInitialData(responseCheckOrganization.data.organization);
-        if(responseCheckOrganization.data.statusCode === 200){
+        const responseCheckOrganization = await organizationClient.checkOrganization({'inn': "7716852062"})
+        if(responseCheckOrganization?.data.statusCode === 200){
           setStatusInit(true)
+          setInitialData(responseCheckOrganization?.data.organization);
         }
       } catch (error) {
         console.error('Ошибка при загрузке данных:', error);

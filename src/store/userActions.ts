@@ -1,3 +1,5 @@
+
+'use client';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { UserData } from '@/types'; // Предположим, что у вас есть тип UserData для данных пользователя
 

@@ -7,6 +7,8 @@ import CardContent from '@mui/material/CardContent';
 import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import setRole from "@/lib/common/Role";
+
 
 const user = {
   name: 'Alexey Petrov',
@@ -15,7 +17,7 @@ const user = {
   city: 'Москва'
 } as const;
 
-export function AccountInfo(): React.JSX.Element {
+export function AccountInfo({ dataUser }): React.JSX.Element {
   return (
     <Card>
       <CardContent>
@@ -24,22 +26,16 @@ export function AccountInfo(): React.JSX.Element {
             <Avatar src={user.avatar} sx={{ height: '80px', width: '80px' }} />
           </div>
           <Stack spacing={1} sx={{ textAlign: 'center' }}>
-            <Typography variant="h5">{user.name}</Typography>
+            <Typography variant="h5">{dataUser?.name}</Typography>
             <Typography color="text.secondary" variant="body2">
-              {user.jobTitle}
+              {dataUser?.email}
             </Typography>
             <Typography color="text.secondary" variant="body2">
-              {user.city}
+              {setRole(dataUser?.role)}
             </Typography>
           </Stack>
         </Stack>
       </CardContent>
-      <Divider />
-      <CardActions>
-        <Button fullWidth variant="text">
-          Загрузить аватар
-        </Button>
-      </CardActions>
     </Card>
   );
 }

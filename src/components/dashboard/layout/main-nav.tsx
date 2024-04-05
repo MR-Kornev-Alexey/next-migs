@@ -16,11 +16,26 @@ import { usePopover } from '@/hooks/use-popover';
 
 import { MobileNav } from './mobile-nav';
 import { UserPopover } from './user-popover';
+import {AppDispatch, RootState} from "@/store/store";
+import {useDispatch, useSelector} from "react-redux";
+import {addNotifications} from "@/store/notificationReducer";
 
 export function MainNav(): React.JSX.Element {
   const [openNav, setOpenNav] = React.useState<boolean>(false);
-
   const userPopover = usePopover<HTMLDivElement>();
+  const dispatch: AppDispatch = useDispatch();
+  const dataUser = useSelector((state: RootState) => state.user.value);
+  const [notificationSent, setNotificationSent] = React.useState(false);
+  function setNotification() {
+    if (dataUser && dataUser.v_AdditionalUserInfo && dataUser.v_AdditionalUserInfo.length === 0 && !notificationSent) {
+      const message = { id: '549377a0-c92a-4e7f-a45f-f71c807844f0', label: 'Внимание! В данном профиле не заполнены все данные.', link: '/dashboard/account' }
+      dispatch(addNotifications(message));
+      setNotificationSent(true); // Обновление состояния на основе предыдущего состояния
+    }
+  }
+  React.useEffect(() => {
+    setNotification();
+  }, []);
 
   return (
     <React.Fragment>
@@ -55,11 +70,6 @@ export function MainNav(): React.JSX.Element {
             </Tooltip>
           </Stack>
           <Stack sx={{ alignItems: 'center' }} direction="row" spacing={2}>
-            <Tooltip title="Contacts">
-              <IconButton>
-                <UsersIcon />
-              </IconButton>
-            </Tooltip>
             <Tooltip title="Notifications">
               <Badge badgeContent={4} color="success" variant="dot">
                 <IconButton>

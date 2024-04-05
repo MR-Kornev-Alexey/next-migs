@@ -17,7 +17,7 @@ export default function CheckOrganisation({initialData}): React.JSX.Element {
   const organizationEntries = Object.entries(initialData);
   return (
     <Stack spacing={3}>
-      <Typography variant="h4">Первичная организация произведена</Typography>
+      <Typography variant="h4" sx={{textAlign:"center"}}>Первичная организация произведена</Typography>
       <Box sx={{ overflowX: 'auto' }}>
         <Table sx={{ minWidth: '600px' }}>
           <TableHead>

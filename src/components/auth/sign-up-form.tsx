@@ -5,7 +5,7 @@ import RouterLink from 'next/link';
 import {useRouter} from 'next/navigation';
 import {zodResolver} from '@hookform/resolvers/zod';
 import Button from '@mui/material/Button';
-import FormControl from '@mui/material/FormControl';
+import { FormControl } from '@mui/material';
 import FormHelperText from '@mui/material/FormHelperText';
 import InputLabel from '@mui/material/InputLabel';
 import OutlinedInput from '@mui/material/OutlinedInput';
@@ -50,8 +50,10 @@ export function SignUpForm(): React.JSX.Element {
     async (values: Values): Promise<void> => {
       setIsPending(true);
 
-      const {error} = await authClient.signUp(values);
-
+      const {error, userDate } = await authClient.signUp(values);
+      if(userDate){
+        console.log(userDate)
+      }
       if (error) {
         setError('root', {type: 'server', message: error});
         setIsPending(false);
@@ -68,7 +70,7 @@ export function SignUpForm(): React.JSX.Element {
   return (
     <Stack spacing={3}>
       <Stack spacing={1}>
-        <Typography variant="h4">Первичная регистрация Supervisor</Typography>
+        <Typography variant="h4" sx={{textAlign: "center"}}>Первичная регистрация Supervisor</Typography>
       </Stack>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
@@ -117,40 +119,16 @@ export function SignUpForm(): React.JSX.Element {
             )}
           />
           <Button disabled={isPending} type="submit" variant="contained">
-            {isPending ? <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24">
-              <rect width={2.8} height={12} x={1} y={6} fill="currentColor">
-                <animate id="svgSpinnersBarsScale0" attributeName="y" begin="0;svgSpinnersBarsScale1.end-0.1s"
-                         calcMode="spline" dur="0.6s" keySplines=".36,.61,.3,.98;.36,.61,.3,.98"
-                         values="6;1;6"></animate>
-                <animate attributeName="height" begin="0;svgSpinnersBarsScale1.end-0.1s" calcMode="spline" dur="0.6s"
-                         keySplines=".36,.61,.3,.98;.36,.61,.3,.98" values="12;22;12"></animate>
-              </rect>
-              <rect width={2.8} height={12} x={5.8} y={6} fill="currentColor">
-                <animate attributeName="y" begin="svgSpinnersBarsScale0.begin+0.1s" calcMode="spline" dur="0.6s"
-                         keySplines=".36,.61,.3,.98;.36,.61,.3,.98" values="6;1;6"></animate>
-                <animate attributeName="height" begin="svgSpinnersBarsScale0.begin+0.1s" calcMode="spline" dur="0.6s"
-                         keySplines=".36,.61,.3,.98;.36,.61,.3,.98" values="12;22;12"></animate>
-              </rect>
-              <rect width={2.8} height={12} x={10.6} y={6} fill="currentColor">
-                <animate attributeName="y" begin="svgSpinnersBarsScale0.begin+0.2s" calcMode="spline" dur="0.6s"
-                         keySplines=".36,.61,.3,.98;.36,.61,.3,.98" values="6;1;6"></animate>
-                <animate attributeName="height" begin="svgSpinnersBarsScale0.begin+0.2s" calcMode="spline" dur="0.6s"
-                         keySplines=".36,.61,.3,.98;.36,.61,.3,.98" values="12;22;12"></animate>
-              </rect>
-              <rect width={2.8} height={12} x={15.4} y={6} fill="currentColor">
-                <animate attributeName="y" begin="svgSpinnersBarsScale0.begin+0.3s" calcMode="spline" dur="0.6s"
-                         keySplines=".36,.61,.3,.98;.36,.61,.3,.98" values="6;1;6"></animate>
-                <animate attributeName="height" begin="svgSpinnersBarsScale0.begin+0.3s" calcMode="spline" dur="0.6s"
-                         keySplines=".36,.61,.3,.98;.36,.61,.3,.98" values="12;22;12"></animate>
-              </rect>
-              <rect width={2.8} height={12} x={20.2} y={6} fill="currentColor">
-                <animate id="svgSpinnersBarsScale1" attributeName="y" begin="svgSpinnersBarsScale0.begin+0.4s"
-                         calcMode="spline" dur="0.6s" keySplines=".36,.61,.3,.98;.36,.61,.3,.98"
-                         values="6;1;6"></animate>
-                <animate attributeName="height" begin="svgSpinnersBarsScale0.begin+0.4s" calcMode="spline" dur="0.6s"
-                         keySplines=".36,.61,.3,.98;.36,.61,.3,.98" values="12;22;12"></animate>
-              </rect>
-            </svg> : <Box>
+            {isPending ? <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 24 24">
+              <path fill="currentColor"
+                    d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z"
+                    opacity={0.25}></path>
+              <path fill="currentColor"
+                    d="M10.72,19.9a8,8,0,0,1-6.5-9.79A7.77,7.77,0,0,1,10.4,4.16a8,8,0,0,1,9.49,6.52A1.54,1.54,0,0,0,21.38,12h.13a1.37,1.37,0,0,0,1.38-1.54,11,11,0,1,0-12.7,12.39A1.54,1.54,0,0,0,12,21.34h0A1.47,1.47,0,0,0,10.72,19.9Z">
+                <animateTransform attributeName="transform" dur="0.75s" repeatCount="indefinite" type="rotate"
+                                  values="0 12 12;360 12 12"></animateTransform>
+              </path>
+            </svg>: <Box>
               Зарегестрироваться
             </Box>
             }

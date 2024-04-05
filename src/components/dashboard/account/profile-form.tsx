@@ -23,26 +23,40 @@ import { authClient } from '@/lib/auth/client';
 import { useUser } from '@/hooks/use-user';
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Unstable_Grid2";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
 
-const cyrillicRegex = /^[а-яёА-ЯЁ]+$/;
+const CyrillicLettersRegex = /^[а-яА-Я\s]+$/;
+const phoneRegex = /^\+7\d{10}$/;
+const telegramRegex = /^@.*/;
+
+
 
 const schema = zod.object({
-  firstName: zod.string()
-    .min(1, { message: 'Ввод имени обязателен' })
-    .regex(cyrillicRegex, { message: 'Введ только букв кириллицы' }),
-  secondName: zod.string()
-    .min(1, { message: 'Ввод фамилии обязателен' })
-    .regex(cyrillicRegex, { message: 'Введ только букв кириллицы' }),
-  email: zod.string().min(1, { message: 'Ввод email обязателен' }).email(),
-  phone: zod.string().min(1, { message: 'Ввод телефона обязателен' }),
-  position: zod.string().min(1, { message: 'Ввод должнсти обязателен' }),
-  organization: zod.string().min(1, { message: 'Ввод организации обязателен' })
-});
+    firstName: zod.string().min(1, {message: 'Ввод имени обязателен'})
+      .regex(CyrillicLettersRegex, {message: 'Ввод только букв кириллицы'}),
+    surName: zod.string().min(1, {message: 'Ввод фамилии обязателен'})
+      .regex(CyrillicLettersRegex, {message: 'Ввод только букв кириллицы'}),
+    telegram: zod.string().min(1, {message: 'Ввод аккаунт телеграма обязателен'})
+      .regex(telegramRegex, {message: 'Аккаунт должен начинаться с @...'}),
+    position: zod.string().min(1, {message: 'Ввод должности обязателен'}),
+    organization: zod.string().min(1, {message: 'Ввод должности обязателен'}),
+    phone: zod.string()
+      .min(12, {message: 'Ввод должен содержать  12 символов'})
+      .regex(phoneRegex, {message: 'Ввод должен содержать  +7 и 10 цифр'})
+  }
+);
+
 
 type Values = zod.infer<typeof schema>;
-
-const defaultValues = { firstName: '',  secondName: '', email: '', phone: '', position: '', organisation: '', city: '' } satisfies Values;
-
+const defaultValues = {
+  firstName: 'Алексей Юрьевич',
+  surName: 'Корнев',
+  telegram: '@MrkDigital',
+  position: 'Инженер - программист',
+  phone: '+79253114131',
+  organization: -1
+} satisfies Values;
 export function ProfileForm(): React.JSX.Element {
   const router = useRouter();
 
@@ -60,34 +74,35 @@ export function ProfileForm(): React.JSX.Element {
 
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
-      setIsPending(true);
-
-      // const { error } = await authClient.signUp(values);
+      // setIsPending(true);
+      //  alert(values)
+      //  const { error } = await authClient.signUp(values);
 
       console.log(values)
 
-      if (error) {
-        setError('root', { type: 'server', message: error });
-        setIsPending(false);
-        setIsMessage('Ошибка ввода, повторите снова')
-        return;
-      }
+      // if (error) {
+      //   setError('root', { type: 'server', message: error });
+      //   setIsPending(false);
+      //   setIsMessage('Ошибка ввода, повторите снова')
+      //   return;
+      // }
 
       // Refresh the auth state
-      await checkSession?.();
+      // await checkSession?.();
 
       // UserProvider, for this case, will not refresh the router
       // After refresh, GuestGuard will handle the redirect
-      router.refresh();
+      // router.refresh();
     },
     [checkSession, router, setError]
   );
 
   return (
-    <Stack spacing={3}>
+    <Stack spacing={3} display="flex" justifyContent="center" alignItems="center">
+      <Box> <Typography variant="body1">У вас не введены все данные. Пожалуйста заполните форму</Typography></Box>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Grid container spacing={3}>
-          <Grid md={6} xs={12}>
+        <Grid container spacing={3} >
+          <Grid md={6} xs={12} display="flex" justifyContent="center" alignItems="center">
           <Controller
             control={control}
             name="firstName"
@@ -100,33 +115,33 @@ export function ProfileForm(): React.JSX.Element {
             )}
           />
           </Grid>
-          <Grid md={6} xs={12}>
+          <Grid md={6} xs={12} display="flex" justifyContent="center" alignItems="center">
             <Controller
               control={control}
-              name="secondName"
+              name="surName"
               render={({ field }) => (
-                <FormControl error={Boolean(errors.secondName)}>
+                <FormControl error={Boolean(errors.surName)}>
                   <InputLabel>Введите фамилию</InputLabel>
                   <OutlinedInput {...field} label="Введите фамилию" />
-                  {errors.secondName ? <FormHelperText>{errors.secondName.message}</FormHelperText> : null}
+                  {errors.surName ? <FormHelperText>{errors.surName.message}</FormHelperText> : null}
                 </FormControl>
               )}
             />
           </Grid>
-          <Grid md={6} xs={12}>
+          <Grid md={6} xs={12} display="flex" justifyContent="center" alignItems="center">
           <Controller
             control={control}
-            name="email"
+            name="telegram"
             render={({ field }) => (
-              <FormControl error={Boolean(errors.email)}>
-                <InputLabel>Email адрес</InputLabel>
-                <OutlinedInput {...field} label="Email адрес" type="email" />
-                {errors.email ? <FormHelperText>{errors.email.message}</FormHelperText> : null}
+              <FormControl error={Boolean(errors.telegram)}>
+                <InputLabel>Телеграм</InputLabel>
+                <OutlinedInput {...field} label="Телеграм" />
+                {errors.telegram ? <FormHelperText>{errors.telegram.message}</FormHelperText> : null}
               </FormControl>
             )}
           />
           </Grid>
-          <Grid md={6} xs={12}>
+          <Grid md={6} xs={12} display="flex" justifyContent="center" alignItems="center">
             <Controller
               control={control}
               name="phone"
@@ -139,7 +154,7 @@ export function ProfileForm(): React.JSX.Element {
               )}
             />
           </Grid>
-          <Grid md={6} xs={12}>
+          <Grid md={6} xs={12} display="flex" justifyContent="center" alignItems="center">
             <Controller
               control={control}
               name="position"
@@ -152,22 +167,34 @@ export function ProfileForm(): React.JSX.Element {
               )}
             />
           </Grid>
-          <Grid md={6} xs={12}>
+          <Grid md={6} xs={12} display="flex" justifyContent="center" alignItems="center">
             <Controller
               control={control}
               name="organization"
+              rules={{ required: 'Требуется ввести данные' }} // Пример правила валидации
               render={({ field }) => (
-                <FormControl error={Boolean(errors.organization)}>
-                  <InputLabel>Организация</InputLabel>
-                  <OutlinedInput {...field} label="Организация" />
-                  {errors.organization ? <FormHelperText>{errors.organization.message}</FormHelperText> : null}
+                <FormControl error={Boolean(errors.telegram)}>
+                  <InputLabel id="telegram-label">Выберите организацию</InputLabel>
+                  <Select
+                    sx={{width: "100%"}}
+                    labelId="telegram-label"
+                    id="telegram-select"
+                    {...field}
+                  >
+                    {/* Пример элементов списка */}
+                    <MenuItem value="-1">  Выберите организацию  </MenuItem>
+                    <MenuItem value="1">organization 1</MenuItem>
+                    <MenuItem value="2">organization 2</MenuItem>
+                    <MenuItem value="3">organization 3</MenuItem>
+                  </Select>
+                  {errors.telegram && <FormHelperText>{errors.telegram.message}</FormHelperText>}
                 </FormControl>
               )}
             />
           </Grid>
           {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
           {errors.root ? <Alert color="error">{isMessage}</Alert> : null}
-          <Grid md={12} xs={12} display="flex" justifyContent="center">
+          <Grid md={12} xs={12} display="flex" justifyContent="center" alignItems="center" >
           <Button disabled={isPending} type="submit" variant="contained">
             {isPending ? <Box>сохранение...</Box> :<Box>
               Сохранить

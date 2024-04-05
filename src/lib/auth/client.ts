@@ -37,20 +37,23 @@ class AuthClient {
         {headers} // Передача заголовков в конфигурацию запроса
       );
       console.log(response)
-      localStorage.setItem('custom-auth-token', JSON.stringify(response.data.user));
+      if(response) {
+        localStorage.setItem('custom-auth-token', JSON.stringify(response.data.user));
+        return response
+      } else {
+        return {}
+      }
+
     } catch (error) {
       // Обработка ошибок
       console.error('Произошла ошибка:', error.message);
       return {error: error.message};
     }
-    return {};
+    // return {};
   }
 
 
-  async signInWithPassword(params: SignInWithPasswordParams): Promise<{ error?: string }> {
-    const {email, password} = params;
-    console.log(params)
-    // Make API request
+  async signInWithPassword(params: SignInWithPasswordParams): Promise<{ error?: string; responseLogin?: any }> {
     try {
       const token = localStorage.getItem('custom-auth-token');
       const headers = {
@@ -60,17 +63,21 @@ class AuthClient {
       const responseLogin = await axios.post(
         'http://localhost:5000/auth/login',
         JSON.stringify(params), // Преобразование объекта в JSON-строку
-        {headers} // Передача заголовков в конфигурацию запроса
+        { headers } // Передача заголовков в конфигурацию запроса
       );
-      console.log(responseLogin)
-      localStorage.setItem('custom-auth-token', JSON.stringify(responseLogin.data.user));
+      if (responseLogin.data) {
+        localStorage.setItem('custom-auth-token', JSON.stringify(responseLogin.data.user));
+        return { responseLogin: responseLogin.data };
+      } else {
+        return {};
+      }
     } catch (error) {
       // Обработка ошибок
       console.error('Произошла ошибка:', error.message);
-      return {error: error.message};
+      return { error: error.message };
     }
-    return {};
   }
+
 
   async resetPassword(_: ResetPasswordParams): Promise<{ error?: string }> {
     return {error: 'Password reset not implemented'};

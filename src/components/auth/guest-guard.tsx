@@ -28,7 +28,7 @@ export function GuestGuard({ children }: GuestGuardProps): React.JSX.Element | n
     }
 
     if (user) {
-      logger.debug('[GuestGuard]: Пользоаетель зарегестрирован');
+      logger.debug('[GuestGuard]: Пользователь зарегестрирован');
       router.replace(paths.dashboard.overview);
       return;
     }

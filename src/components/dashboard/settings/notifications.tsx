@@ -13,8 +13,24 @@ import FormGroup from '@mui/material/FormGroup';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
+import {useSelector} from "react-redux";
+import {RootState} from "@/store/store";
+import Box from "@mui/material/Box";
+import {Budget} from "@/components/dashboard/overview/budget";
+import {TotalCustomers} from "@/components/dashboard/overview/total-customers";
+import Link from "@mui/material/Link";
+import RouterLink from "next/link";
+import {paths} from "@/paths";
 
 export function Notifications(): React.JSX.Element {
+  const arrayNotifications = useSelector((state: RootState) => state.notifications.value);
+  console.log('arrayNotifications - ', arrayNotifications)
+  // Создаем новый массив без дубликатов по id
+  const uniqueArrayNotifications = arrayNotifications.filter((notification, index, self) =>
+      index === self.findIndex((n) => (
+        n.id === notification.id
+      ))
+  );
   return (
     <form
       onSubmit={(event) => {
@@ -22,32 +38,27 @@ export function Notifications(): React.JSX.Element {
       }}
     >
       <Card>
-        <CardHeader subheader="Manage the notifications" title="Notifications" />
-        <Divider />
+        <Divider/>
         <CardContent>
-          <Grid container spacing={6} wrap="wrap">
-            <Grid md={4} sm={6} xs={12}>
-              <Stack spacing={1}>
-                <Typography variant="h6">Email</Typography>
-                <FormGroup>
-                  <FormControlLabel control={<Checkbox defaultChecked />} label="Product updates" />
-                  <FormControlLabel control={<Checkbox />} label="Security updates" />
-                </FormGroup>
-              </Stack>
-            </Grid>
-            <Grid md={4} sm={6} xs={12}>
-              <Stack spacing={1}>
-                <Typography variant="h6">Phone</Typography>
-                <FormGroup>
-                  <FormControlLabel control={<Checkbox defaultChecked />} label="Email" />
-                  <FormControlLabel control={<Checkbox />} label="Security updates" />
-                </FormGroup>
-              </Stack>
-            </Grid>
-          </Grid>
+          {arrayNotifications.length === 0? <Box> <Typography variant="body2">Уведомлений нет</Typography></Box> :
+            <Box>
+              {uniqueArrayNotifications.map((item, index) =>
+                <Grid container spacing={2} key={index}>
+                  <Grid  xs={12} md={9}>
+                    {item.label}
+                  </Grid>
+                  <Grid  xs={12} md={3}>
+                    <Link component={RouterLink} href={item.link} variant="subtitle2">
+                      Исправить
+                    </Link>
+                  </Grid>
+                </Grid>)
+              }
+            </Box>
+          }
         </CardContent>
-        <Divider />
-        <CardActions sx={{ justifyContent: 'flex-end' }}>
+        <Divider/>
+        <CardActions sx={{justifyContent: 'flex-end'}}>
           <Button variant="contained">Save changes</Button>
         </CardActions>
       </Card>

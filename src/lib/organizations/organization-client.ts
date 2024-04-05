@@ -17,16 +17,12 @@ async function getHeaders() {
   };
 }
 
-export class CustomersClient {
-  async getCustomers() {
-    let getEmail = await getHeaders()
+export class OrganizationClient {
+  async checkOrganization(value) {
     try {
-      const sendData = {
-        email: getEmail.email
-      };
       return await axios.post(
-        'http://localhost:5000/customers/all_customers',
-        JSON.stringify(sendData),
+        'http://localhost:5000/organization/check_organization',
+        JSON.stringify(value),
         { headers: await getHeaders() }
       );
     } catch (error) {
@@ -53,18 +49,7 @@ export class CustomersClient {
       return { error: error.message };
     }
   }
-  async findRoleCustomer(){
-    try {
-      return await axios.get(
-        'http://localhost:5000/customers/find_role_customer',
-        {headers: await getHeaders()}
-      )
-    } catch (error) {
-      console.error('Произошла ошибка:', error.message);
-      return { error: error.message };
-    }
-  }
 }
 
-export const customersClient = new CustomersClient();
+export const organizationClient = new OrganizationClient();
 

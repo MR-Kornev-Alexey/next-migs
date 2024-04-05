@@ -49,9 +49,6 @@ export function Layout({ children }: LayoutProps): React.JSX.Element {
                "ООО НИИ МИГС"
               </Box>
             </Typography>
-            <Typography align="center" variant="subtitle1">
-             Кабинет пользователя
-            </Typography>
           </Stack>
         </Stack>
       </Box>

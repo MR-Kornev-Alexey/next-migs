@@ -17,6 +17,7 @@ import { authClient } from '@/lib/auth/client';
 import { logger } from '@/lib/default-logger';
 import { useUser } from '@/hooks/use-user';
 
+
 export interface UserPopoverProps {
   anchorEl: Element | null;
   onClose: () => void;
@@ -47,11 +48,6 @@ export function UserPopover({ anchorEl, onClose, open }: UserPopoverProps): Reac
       logger.error('Sign out error', err);
     }
   }, [checkSession, router]);
-  let email
-  const dataUser = localStorage.getItem('custom-auth-token');// Получение  роли  пользователя из контекста или хранилища
-  if (dataUser != null) {
-    email = JSON.parse(dataUser).email
-  }
 
   return (
     <Popover
@@ -64,7 +60,6 @@ export function UserPopover({ anchorEl, onClose, open }: UserPopoverProps): Reac
       <Box sx={{ p: '16px 20px ' }}>
         <Typography variant="subtitle1">Sofia Rivers</Typography>
         <Typography color="text.secondary" variant="body2">
-          {email}
         </Typography>
       </Box>
       <Divider />

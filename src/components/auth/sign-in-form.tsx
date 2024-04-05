@@ -22,6 +22,11 @@ import { paths } from '@/paths';
 import { authClient } from '@/lib/auth/client';
 import { useUser } from '@/hooks/use-user';
 import Box from "@mui/material/Box";
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '@/store/store';
+
+import type { SVGProps } from 'react';
+import {setUser} from "@/store/userReducer";
 
 const schema = zod.object({
   email: zod.string().min(1, { message: 'Ввод email обязателен ' }).email(),
@@ -40,6 +45,7 @@ export function SignInForm(): React.JSX.Element {
   const [showPassword, setShowPassword] = React.useState<boolean>();
 
   const [isPending, setIsPending] = React.useState<boolean>(false);
+  const dispatch: AppDispatch = useDispatch();
 
   const {
     control,
@@ -52,7 +58,12 @@ export function SignInForm(): React.JSX.Element {
     async (values: Values): Promise<void> => {
       setIsPending(true);
 
-      const { error } = await authClient.signInWithPassword(values);
+      const { error , responseLogin } = await authClient.signInWithPassword(values);
+
+      if (responseLogin) {
+        console.log('responseLogin - ', responseLogin);
+        dispatch(setUser(responseLogin.user)); // Сохраняем данные о пользователе в Redux-стейт
+      }
 
       if (error) {
         setError('root', { type: 'server', message: error });
@@ -74,19 +85,13 @@ export function SignInForm(): React.JSX.Element {
     <Stack spacing={4}>
       <Stack spacing={1}>
         <Typography variant="h4">Вход в личный кабинет</Typography>
-        <Typography color="text.secondary" variant="body2">
-          Нет аккаунта?{' '}
-          <Link component={RouterLink} href={paths.auth.signUp} underline="hover" variant="subtitle2">
-            Регистрация
-          </Link>
-        </Typography>
       </Stack>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
           <Controller
             control={control}
             name="email"
-            render={({ field }) => (
+            render={({ field }: { field: any }) => (
               <FormControl error={Boolean(errors.email)}>
                 <InputLabel>Email адрес</InputLabel>
                 <OutlinedInput {...field} label="Email адрес" type="email" />
@@ -135,22 +140,16 @@ export function SignInForm(): React.JSX.Element {
           </div>
           {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
           <Button disabled={isPending} type="submit" variant="contained">
-            {isPending ? <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="22" height="22">
-              <radialGradient id="a11" cx=".66" fx=".66" cy=".3125" fy=".3125" gradientTransform="scale(1.5)">
-                <stop offset="0" stopColor="#635bff"></stop>
-                <stop offset=".3" stopColor="#635bff" stopOpacity="1"></stop>
-                <stop offset=".6" stopColor="#635bff" stopOpacity=".6"></stop>
-                <stop offset=".8" stopColor="#635bff" stopOpacity=".3"></stop>
-                <stop offset="1" stopColor="#635bff" stopOpacity="0"></stop>
-              </radialGradient>
-              <circle transform-origin="center" fill="none" stroke="url(#a11)" strokeWidth="30" strokeLinecap="round"
-                      strokeDasharray="200 1000" strokeDashoffset="0" cx="100" cy="100" r="70">
-                <animateTransform type="rotate" attributeName="transform" calcMode="spline" dur="2.3" values="360;0"
-                                  keyTimes="0;1" keySplines="0 0 1 1" repeatCount="indefinite"></animateTransform>
-              </circle>
-              <circle transform-origin="center" fill="none" opacity=".2" stroke="#114B5C" stroke-width="30"
-                      strokeLinecap="round" cx="100" cy="100" r="70"></circle>
-            </svg> :<Box>
+            {isPending ? <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 24 24">
+              <path fill="currentColor"
+                    d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z"
+                    opacity={0.25}></path>
+              <path fill="currentColor"
+                    d="M10.72,19.9a8,8,0,0,1-6.5-9.79A7.77,7.77,0,0,1,10.4,4.16a8,8,0,0,1,9.49,6.52A1.54,1.54,0,0,0,21.38,12h.13a1.37,1.37,0,0,0,1.38-1.54,11,11,0,1,0-12.7,12.39A1.54,1.54,0,0,0,12,21.34h0A1.47,1.47,0,0,0,10.72,19.9Z">
+                <animateTransform attributeName="transform" dur="0.75s" repeatCount="indefinite" type="rotate"
+                                  values="0 12 12;360 12 12"></animateTransform>
+              </path>
+            </svg> : <Box>
               Войти</Box>
             }
           </Button>
