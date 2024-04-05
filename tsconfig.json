@@ -25,7 +25,11 @@
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts",
     "src/**/*.ts", // Путь к вашим файлам TypeScript, например
-    "otherFolder/**/*.ts" // Другие пути, если нужно
+    "otherFolder/**/*.ts" ,// Другие пути, если нужно
+    "src/types/ProfileClient.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
+  "headers": {
+    "Content-Type": "String"
+  }
 }

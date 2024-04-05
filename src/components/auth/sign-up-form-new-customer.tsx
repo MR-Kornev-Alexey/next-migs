@@ -1,7 +1,7 @@
-'use client';
+// noinspection TypeScriptValidateTypes
 
+'use client';
 import * as React from 'react';
-import RouterLink from 'next/link';
 import {useRouter} from 'next/navigation';
 import {zodResolver} from '@hookform/resolvers/zod';
 import Button from '@mui/material/Button';
@@ -16,6 +16,7 @@ import {z as zod} from 'zod';
 import {authClient} from '@/lib/auth/client';
 import {useUser} from '@/hooks/use-user';
 import Box from "@mui/material/Box";
+import OrganisationList from "@/components/select/organisation-list";
 
 
 const schema = zod.object({
@@ -31,7 +32,7 @@ const schema = zod.object({
 type Values = zod.infer<typeof schema>;
 const defaultValues = {name: '', email: '', password: '', organizationInn: '7716852062'} satisfies Values;
 
-export function SignUpForm(): React.JSX.Element {
+export function SignUpFormNewCustomer({organisations}): React.JSX.Element {
   const router = useRouter();
 
   const {checkSession} = useUser();
@@ -49,7 +50,6 @@ export function SignUpForm(): React.JSX.Element {
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
       setIsPending(true);
-
       const {error} = await authClient.signUp(values);
 
       if (error) {
@@ -67,9 +67,6 @@ export function SignUpForm(): React.JSX.Element {
   );
   return (
     <Stack spacing={3}>
-      <Stack spacing={1}>
-        <Typography variant="h4">Первичная регистрация Supervisor</Typography>
-      </Stack>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
           <Controller
@@ -86,13 +83,15 @@ export function SignUpForm(): React.JSX.Element {
           <Controller
             control={control}
             name="email"
-            render={({field}) => (
-              <FormControl error={Boolean(errors.email)}>
-                <InputLabel>Email</InputLabel>
-                <OutlinedInput {...field} label="Email" type="email"/>
-                {errors.email ? <FormHelperText>{errors.email.message}</FormHelperText> : null}
-              </FormControl>
-            )}
+            render={({field}) => {
+              return (
+                <FormControl error={Boolean(errors.email)}>
+                  <InputLabel>Email</InputLabel>
+                  <OutlinedInput {...field} label="Email" type="email"/>
+                  {errors.email ? <FormHelperText>{errors.email.message}</FormHelperText> : null}
+                </FormControl>
+              );
+            }}
           />
           <Controller
             control={control}
@@ -116,6 +115,7 @@ export function SignUpForm(): React.JSX.Element {
               </FormControl>
             )}
           />
+          <OrganisationList organisations={organisations}/>
           <Button disabled={isPending} type="submit" variant="contained">
             {isPending ? <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24">
               <rect width={2.8} height={12} x={1} y={6} fill="currentColor">
@@ -155,6 +155,7 @@ export function SignUpForm(): React.JSX.Element {
             </Box>
             }
           </Button>
+          {isMessage}
         </Stack>
       </form>
       {/*<Alert color="warning">Ввод нового пользователя</Alert>*/}
