@@ -30,7 +30,7 @@ const onSubmit = (data) => {
 
 export function AccountDetailsForm(): React.JSX.Element {
   return (
-    <formА
+    <form
       onSubmit={(event) => {
         console.log(event);
       }}
@@ -94,6 +94,6 @@ export function AccountDetailsForm(): React.JSX.Element {
           <Button type="submit" variant="contained">Сохранить</Button>
         </CardActions>
       </Card>
-    </formА>
+    </form>
   );
 }

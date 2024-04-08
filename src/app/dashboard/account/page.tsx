@@ -18,7 +18,7 @@ export default function Page(): React.JSX.Element {
   const [checkAdditionalData, setCheckAdditionalData] = React.useState(true);
 
   useEffect(() => {
-    if (dataUser?.registration_status !== 'COMPLETED') {
+    if (dataUser?.registration_status === 'COMPLETED') {
       setCheckAdditionalData(false);
     }
   }, []);

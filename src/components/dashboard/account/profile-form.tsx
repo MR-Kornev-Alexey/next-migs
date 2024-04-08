@@ -23,8 +23,8 @@ import { authClient } from '@/lib/auth/client';
 import { useUser } from '@/hooks/use-user';
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Unstable_Grid2";
-import Select from "@mui/material/Select";
-import MenuItem from "@mui/material/MenuItem";
+import {customersClient} from "@/lib/customers/customers-client";
+
 
 const CyrillicLettersRegex = /^[а-яА-Я\s]+$/;
 const phoneRegex = /^\+7\d{10}$/;
@@ -40,7 +40,6 @@ const schema = zod.object({
     telegram: zod.string().min(1, {message: 'Ввод аккаунт телеграма обязателен'})
       .regex(telegramRegex, {message: 'Аккаунт должен начинаться с @...'}),
     position: zod.string().min(1, {message: 'Ввод должности обязателен'}),
-    organization: zod.string().min(1, {message: 'Ввод должности обязателен'}),
     phone: zod.string()
       .min(12, {message: 'Ввод должен содержать  12 символов'})
       .regex(phoneRegex, {message: 'Ввод должен содержать  +7 и 10 цифр'})
@@ -50,15 +49,17 @@ const schema = zod.object({
 
 type Values = zod.infer<typeof schema>;
 const defaultValues = {
+  user_id:   "",
   firstName: 'Алексей Юрьевич',
   surName: 'Корнев',
   telegram: '@MrkDigital',
   position: 'Инженер - программист',
-  phone: '+79253114131',
-  organization: -1
+  phone: '+79253114131'
 } satisfies Values;
 export function ProfileForm(): React.JSX.Element {
   const router = useRouter();
+
+
 
   const { checkSession } = useUser();
 
@@ -74,18 +75,35 @@ export function ProfileForm(): React.JSX.Element {
 
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
-      // setIsPending(true);
-      //  alert(values)
-      //  const { error } = await authClient.signUp(values);
 
+      const dataUser = localStorage.getItem('custom-auth-token');
+      let userId = '';
+      if (dataUser !== null) {
+        userId = JSON.parse(dataUser).id;
+      }
       console.log(values)
+      setIsPending(true);
+      const updatedValues = { ...values, user_id: userId };
 
-      // if (error) {
-      //   setError('root', { type: 'server', message: error });
-      //   setIsPending(false);
-      //   setIsMessage('Ошибка ввода, повторите снова')
-      //   return;
-      // }
+      // console.log(updatedValues);
+      const result = await customersClient.initSignAdditionalData(updatedValues);
+
+// Проверить наличие ошибки
+      if (result.error) {
+        setError('root', { type: 'server', message: result.error });
+        setIsPending(false);
+        setIsMessage('Ошибка ввода, повторите снова');
+        return;
+      }
+
+// Проверить наличие дополнительных данных
+      if (result.additionalData) {
+        setIsPending(false);
+        console.log('result - ', result.newDataUser);
+        localStorage.setItem('custom-auth-token', JSON.stringify(result.newDataUser));
+        localStorage.setItem('custom-additional-data', JSON.stringify(result.additionalData));
+      }
+
 
       // Refresh the auth state
       // await checkSession?.();
@@ -163,31 +181,6 @@ export function ProfileForm(): React.JSX.Element {
                   <InputLabel>Должность</InputLabel>
                   <OutlinedInput {...field} label="Должность" />
                   {errors.position ? <FormHelperText>{errors.position.message}</FormHelperText> : null}
-                </FormControl>
-              )}
-            />
-          </Grid>
-          <Grid md={6} xs={12} display="flex" justifyContent="center" alignItems="center">
-            <Controller
-              control={control}
-              name="organization"
-              rules={{ required: 'Требуется ввести данные' }} // Пример правила валидации
-              render={({ field }) => (
-                <FormControl error={Boolean(errors.telegram)}>
-                  <InputLabel id="telegram-label">Выберите организацию</InputLabel>
-                  <Select
-                    sx={{width: "100%"}}
-                    labelId="telegram-label"
-                    id="telegram-select"
-                    {...field}
-                  >
-                    {/* Пример элементов списка */}
-                    <MenuItem value="-1">  Выберите организацию  </MenuItem>
-                    <MenuItem value="1">organization 1</MenuItem>
-                    <MenuItem value="2">organization 2</MenuItem>
-                    <MenuItem value="3">organization 3</MenuItem>
-                  </Select>
-                  {errors.telegram && <FormHelperText>{errors.telegram.message}</FormHelperText>}
                 </FormControl>
               )}
             />

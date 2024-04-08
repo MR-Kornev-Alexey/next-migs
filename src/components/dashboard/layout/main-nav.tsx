@@ -24,10 +24,14 @@ export function MainNav(): React.JSX.Element {
   const [openNav, setOpenNav] = React.useState<boolean>(false);
   const userPopover = usePopover<HTMLDivElement>();
   const dispatch: AppDispatch = useDispatch();
-  const dataUser = useSelector((state: RootState) => state.user.value);
+  const dataUser = localStorage.getItem('custom-auth-token');
+  let registrationStatus;
+  if (dataUser !== null) {
+    registrationStatus = JSON.parse(dataUser).registration_status;
+  }
   const [notificationSent, setNotificationSent] = React.useState(false);
   function setNotification() {
-    if (dataUser && dataUser.v_AdditionalUserInfo && dataUser.v_AdditionalUserInfo.length === 0 && !notificationSent) {
+    if (registrationStatus === "NOT_COMPLETED" && !notificationSent) {
       const message = { id: '549377a0-c92a-4e7f-a45f-f71c807844f0', label: 'Внимание! В данном профиле не заполнены все данные.', link: '/dashboard/account' }
       dispatch(addNotifications(message));
       setNotificationSent(true); // Обновление состояния на основе предыдущего состояния
