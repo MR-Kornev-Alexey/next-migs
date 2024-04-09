@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import {Box, Select, MenuItem, SelectChangeEvent} from '@mui/material';
+import { Box, Select, MenuItem, SelectChangeEvent } from '@mui/material';
 
 interface Organisation {
   id: string;
@@ -9,18 +9,21 @@ interface Organisation {
 
 interface Props {
   organisations: Organisation[];
+  onSelectOrganisation: (organisationId: string) => void; // Функция обратного вызова для выбора организации
 }
 
-const OrganisationList: React.FC<Props> = ({organisations}) => {
+const OrganisationList: React.FC<Props> = ({ organisations, onSelectOrganisation }) => {
   const [selectedOrganisation, setSelectedOrganisation] = React.useState<string>('-1');
 
   const handleChange = (event: SelectChangeEvent<string>) => {
-    setSelectedOrganisation(event.target.value);
+    const selectedOrgId = event.target.value;
+    setSelectedOrganisation(selectedOrgId);
+    onSelectOrganisation(selectedOrgId); // Вызываем функцию обратного вызова с выбранной организацией
   };
 
   return (
     <Box>
-      <Select value={selectedOrganisation} onChange={handleChange}>
+      <Select value={selectedOrganisation} onChange={handleChange} sx={{width: "99%"}}>
         <MenuItem value="-1">Выберите организацию</MenuItem>
         {organisations.map((item) => (
           <MenuItem key={item.id} value={item.id}>
@@ -28,22 +31,9 @@ const OrganisationList: React.FC<Props> = ({organisations}) => {
           </MenuItem>
         ))}
       </Select>
-      {selectedOrganisation}
     </Box>
   );
 }
 
-// Пример организаций
-const organisations: Organisation[] = [
-  {id: '1', name: 'Организация 1'},
-  {id: '2', name: 'Организация 2'},
-  {id: '3', name: 'Организация 3'},
-];
-
-const Example: React.FC = () => {
-  return (
-    <OrganisationList organisations={organisations}/>
-  );
-}
-
 export default OrganisationList;
+

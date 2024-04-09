@@ -20,6 +20,7 @@ import dayjs from 'dayjs';
 import { useSelection } from '@/hooks/use-selection';
 import setRole from "@/lib/common/role";
 import {UserGear} from "@phosphor-icons/react/dist/ssr/UserGear";
+import {ListMagnifyingGlass} from "@phosphor-icons/react";
 import CardActions from "@mui/material/CardActions";
 import Button from "@mui/material/Button";
 
@@ -28,19 +29,22 @@ function noop(): void {
 }
 
 export interface Customer {
+  id: string;
+  avatar: string;
   name: string;
   email: string;
-  role:  string ;
-  organization: string;
+  address:  string;
+  phone: string;
 }
 
 interface CustomersTableProps {
-  rows?: Customer[];
+  rows?: any;
   rowsPerPage?: number;
 }
 
-export function CustomersTable({
-  rows = [],openModal
+export function OrganizationsTable({
+  rows = [],
+  openModal
 }: CustomersTableProps): React.JSX.Element {
   const rowIds = React.useMemo(() => {
     return rows.map((customer) => customer.id);
@@ -70,10 +74,12 @@ export function CustomersTable({
                   }}
                 />
               </TableCell>
-              <TableCell>Username</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Статус</TableCell>
-              <TableCell>Организация</TableCell>
+              <TableCell>Название</TableCell>
+              <TableCell>ИНН</TableCell>
+              <TableCell>Адрес</TableCell>
+              <TableCell>Руководитель</TableCell>
+              <TableCell>Телефон</TableCell>
+              <TableCell>Емейл</TableCell>
               <TableCell>Подробнее</TableCell>
             </TableRow>
           </TableHead>
@@ -100,12 +106,14 @@ export function CustomersTable({
                       <Typography variant="subtitle2">{row.name}</Typography>
                     </Stack>
                   </TableCell>
-                  <TableCell>{row.email}</TableCell>
+                  <TableCell>{row.inn}</TableCell>
                   <TableCell>
-                    {setRole(row.role)}
+                    {row.address}
                   </TableCell>
-                  <TableCell>{row.organization.name}</TableCell>
-                  <TableCell> <UserGear size={24} /> </TableCell>
+                  <TableCell>{row.directorName}</TableCell>
+                  <TableCell>{row.organizationPhone}</TableCell>
+                  <TableCell>{row.organizationEmail}</TableCell>
+                  <TableCell><ListMagnifyingGlass size={24} /> </TableCell>
                 </TableRow>
               );
             })}
@@ -114,7 +122,7 @@ export function CustomersTable({
       </Box>
       <Divider />
       <CardActions sx={{justifyContent: 'flex-end'}}>
-        <Button variant="contained" onClick={openModal}>Добавить пользователя</Button>
+        <Button variant="contained" onClick={openModal}>Добавить организацию</Button>
       </CardActions>
     </Card>
   );

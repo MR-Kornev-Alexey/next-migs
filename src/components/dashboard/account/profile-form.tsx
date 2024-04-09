@@ -56,7 +56,7 @@ const defaultValues = {
   position: 'Инженер - программист',
   phone: '+79253114131'
 } satisfies Values;
-export function ProfileForm(): React.JSX.Element {
+export function ProfileForm({changeData}): React.JSX.Element {
   const router = useRouter();
 
 
@@ -99,25 +99,17 @@ export function ProfileForm(): React.JSX.Element {
 // Проверить наличие дополнительных данных
       if (result.additionalData) {
         setIsPending(false);
-        console.log('result - ', result.newDataUser);
+        // console.log('result - ', result.newDataUser);
         localStorage.setItem('custom-auth-token', JSON.stringify(result.newDataUser));
-        localStorage.setItem('custom-additional-data', JSON.stringify(result.additionalData));
+        changeData()
       }
-
-
-      // Refresh the auth state
-      // await checkSession?.();
-
-      // UserProvider, for this case, will not refresh the router
-      // After refresh, GuestGuard will handle the redirect
-      // router.refresh();
     },
     [checkSession, router, setError]
   );
 
   return (
     <Stack spacing={3} display="flex" justifyContent="center" alignItems="center">
-      <Box> <Typography variant="body1">У вас не введены все данные. Пожалуйста заполните форму</Typography></Box>
+      <Box> <Typography variant="body1">Пожалуйста заполните форму</Typography></Box>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={3} >
           <Grid md={6} xs={12} display="flex" justifyContent="center" alignItems="center">
@@ -189,7 +181,16 @@ export function ProfileForm(): React.JSX.Element {
           {errors.root ? <Alert color="error">{isMessage}</Alert> : null}
           <Grid md={12} xs={12} display="flex" justifyContent="center" alignItems="center" >
           <Button disabled={isPending} type="submit" variant="contained">
-            {isPending ? <Box>сохранение...</Box> :<Box>
+            {isPending ? <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 24 24">
+              <path fill="currentColor"
+                    d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z"
+                    opacity={0.25}></path>
+              <path fill="currentColor"
+                    d="M10.72,19.9a8,8,0,0,1-6.5-9.79A7.77,7.77,0,0,1,10.4,4.16a8,8,0,0,1,9.49,6.52A1.54,1.54,0,0,0,21.38,12h.13a1.37,1.37,0,0,0,1.38-1.54,11,11,0,1,0-12.7,12.39A1.54,1.54,0,0,0,12,21.34h0A1.47,1.47,0,0,0,10.72,19.9Z">
+                <animateTransform attributeName="transform" dur="0.75s" repeatCount="indefinite" type="rotate"
+                                  values="0 12 12;360 12 12"></animateTransform>
+              </path>
+            </svg>:<Box>
               Сохранить
             </Box>
             }

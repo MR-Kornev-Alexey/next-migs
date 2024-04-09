@@ -14,15 +14,17 @@ import {addNotifications} from "@/store/notificationReducer";
 import {AccountDetailsForm} from "@/components/dashboard/account/account-details-form";
 
 export default function Page(): React.JSX.Element {
-  const dataUser:any = localStorage.getItem('custom-auth-token');
-  const [checkAdditionalData, setCheckAdditionalData] = React.useState(true);
+  const dataUser:any = JSON.parse(localStorage.getItem('custom-auth-token'));
+  let [checkAdditionalData, setCheckAdditionalData] = React.useState(false);
 
   useEffect(() => {
     if (dataUser?.registration_status === 'COMPLETED') {
-      setCheckAdditionalData(false);
+      setCheckAdditionalData(true);
     }
   }, []);
-
+  const toggleStatus = () => {
+    setCheckAdditionalData(checkAdditionalData=!checkAdditionalData);
+  }
   return (
     <Stack spacing={3}>
       <div>
@@ -33,8 +35,8 @@ export default function Page(): React.JSX.Element {
           <AccountInfo dataUser={dataUser}/>
         </Grid>
         <Grid lg={8} md={6} xs={12}>
-          {checkAdditionalData?<AccountDetailsForm />:
-            <ProfileForm />
+          {checkAdditionalData?<AccountDetailsForm changeData={toggleStatus} dataUser = {dataUser}/>:
+            <ProfileForm changeData={toggleStatus} />
           }
         </Grid>
       </Grid>

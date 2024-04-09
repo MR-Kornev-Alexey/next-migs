@@ -6,18 +6,19 @@ import { SignUpFormOrganization } from '@/components/auth/sign-up-form-organizat
 import CheckOrganisation from '@/components/auth/check-organization';
 import axios from 'axios';
 import {organizationClient} from "@/lib/organizations/organization-client";
+import {useState} from "react";
 
 export default function Page(): React.JSX.Element {
   const [initialData, setInitialData] = React.useState(null);
   const [statusInit, setStatusInit] = React.useState(false);
-
+  const [isFirst, setIsFirst] = useState(true);
   React.useEffect(() => {
     const fetchData = async () => {
       try {
         const headers = {
           'Content-Type': 'application/json'
         };
-        const responseCheckOrganization = await organizationClient.checkOrganization({'inn': "7716852062"})
+        const responseCheckOrganization = await organizationClient.checkOrganization({'inn': "77168520612"})
         if(responseCheckOrganization?.data.statusCode === 200){
           setStatusInit(true)
           setInitialData(responseCheckOrganization?.data.organization);
@@ -32,7 +33,7 @@ export default function Page(): React.JSX.Element {
   return (
     <Layout>
       <GuestGuard>
-        {statusInit?<CheckOrganisation initialData={initialData}/>:<SignUpFormOrganization  />
+        {statusInit?<CheckOrganisation initialData={initialData}/>:<SignUpFormOrganization isFirst={isFirst}  />
         }
       </GuestGuard>
     </Layout>

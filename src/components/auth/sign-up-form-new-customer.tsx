@@ -1,6 +1,3 @@
-// noinspection TypeScriptValidateTypes
-
-'use client';
 import * as React from 'react';
 import {useRouter} from 'next/navigation';
 import {zodResolver} from '@hookform/resolvers/zod';
@@ -17,28 +14,52 @@ import {authClient} from '@/lib/auth/client';
 import {useUser} from '@/hooks/use-user';
 import Box from "@mui/material/Box";
 import OrganisationList from "@/components/select/organisation-list";
-
+import {useEffect} from "react";
+import {fetchAllOrganizations} from "@/components/dashboard/customer/fetchAllOrganizations";
+import {customersClient} from "@/lib/customers/customers-client";
 
 const schema = zod.object({
     name: zod.string()
       .min(1, {message: 'Ввод username обязателен'}),
     email: zod.string().min(1, {message: 'Ввод email обязателен'}).email(),
-    password: zod.string().min(8, {message: 'Минимальное количество 8 знаков'}),
-    organizationInn: zod.string()
-      .min(1, {message: 'Ввод id предприятия обязателен'})
+    password: zod.string().min(8, {message: 'Минимальное количество 8 знаков'})
   }
 );
 
 type Values = zod.infer<typeof schema>;
-const defaultValues = {name: '', email: '', password: '', organizationInn: '7716852062'} satisfies Values;
+const defaultValues = {name: '', email: '', password: '' } satisfies Values;
 
-export function SignUpFormNewCustomer({organisations}): React.JSX.Element {
+export function SignUpFormNewCustomer(): React.JSX.Element {
   const router = useRouter();
-
-  const {checkSession} = useUser();
-
   const [isPending, setIsPending] = React.useState<boolean>(false);
   const [isMessage, setIsMessage] = React.useState<string>('');
+  const [isAllOrganizations, setAllOrganizations] = React.useState<string>([]);
+  const [formData, setFormData] = React.useState({
+    organization_id: '', // Используем выбранную организацию
+    registration_status: "NOT_COMPLETED",
+    role: 'customer'
+  });
+
+  const handleSelectOrganisation = (organisationId: string) => {
+    setFormData(prevData => ({
+      ...prevData,
+      organization_id: organisationId,
+    }));
+  };
+
+  useEffect(() => {
+    // Здесь вы можете выполнять запрос к серверу для получения данных
+    // Например, с использованием fetch или axios
+    fetchAllOrganizations().then((data) => {
+      console.log(data)
+      setAllOrganizations(data);
+      // setPageCounter(Math.floor((data?.data.length)/rowsPerPage))
+      // setLoading(false);
+    }).catch((error) => {
+      console.error('Ошибка при загрузке данных:', error);
+      // setLoading(false);
+    });
+  }, []);
 
   const {
     control,
@@ -50,21 +71,19 @@ export function SignUpFormNewCustomer({organisations}): React.JSX.Element {
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
       setIsPending(true);
-      const {error} = await authClient.signUp(values);
 
-      if (error) {
-        setError('root', {type: 'server', message: error});
-        setIsPending(false);
-        setIsMessage('Ошибка ввода, повторите снова')
-        return;
-      }
+      const updatedValues = {
+        ...values,
+        ...formData
+      };
+      const result = await customersClient.createNewCustomer(updatedValues);
+      console.log(result);
 
-      // Refresh the auth store
-      await checkSession?.();
-      router.refresh();
+      setIsPending(false);
     },
-    [checkSession, router, setError]
+    [ router, setError, formData]
   );
+
   return (
     <Stack spacing={3}>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -104,61 +123,24 @@ export function SignUpFormNewCustomer({organisations}): React.JSX.Element {
               </FormControl>
             )}
           />
-          <Controller
-            control={control}
-            name="organizationInn"
-            render={({field}) => (
-              <FormControl error={Boolean(errors.organizationInn)}>
-                <InputLabel>Введите ИНН организации</InputLabel>
-                <OutlinedInput {...field} label="ИНН"/>
-                {errors.organizationInn ? <FormHelperText>{errors.organizationInn.message}</FormHelperText> : null}
-              </FormControl>
-            )}
-          />
-          <OrganisationList organisations={organisations}/>
+          <OrganisationList organisations={isAllOrganizations} onSelectOrganisation={handleSelectOrganisation} />
           <Button disabled={isPending} type="submit" variant="contained">
-            {isPending ? <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24">
-              <rect width={2.8} height={12} x={1} y={6} fill="currentColor">
-                <animate id="svgSpinnersBarsScale0" attributeName="y" begin="0;svgSpinnersBarsScale1.end-0.1s"
-                         calcMode="spline" dur="0.6s" keySplines=".36,.61,.3,.98;.36,.61,.3,.98"
-                         values="6;1;6"></animate>
-                <animate attributeName="height" begin="0;svgSpinnersBarsScale1.end-0.1s" calcMode="spline" dur="0.6s"
-                         keySplines=".36,.61,.3,.98;.36,.61,.3,.98" values="12;22;12"></animate>
-              </rect>
-              <rect width={2.8} height={12} x={5.8} y={6} fill="currentColor">
-                <animate attributeName="y" begin="svgSpinnersBarsScale0.begin+0.1s" calcMode="spline" dur="0.6s"
-                         keySplines=".36,.61,.3,.98;.36,.61,.3,.98" values="6;1;6"></animate>
-                <animate attributeName="height" begin="svgSpinnersBarsScale0.begin+0.1s" calcMode="spline" dur="0.6s"
-                         keySplines=".36,.61,.3,.98;.36,.61,.3,.98" values="12;22;12"></animate>
-              </rect>
-              <rect width={2.8} height={12} x={10.6} y={6} fill="currentColor">
-                <animate attributeName="y" begin="svgSpinnersBarsScale0.begin+0.2s" calcMode="spline" dur="0.6s"
-                         keySplines=".36,.61,.3,.98;.36,.61,.3,.98" values="6;1;6"></animate>
-                <animate attributeName="height" begin="svgSpinnersBarsScale0.begin+0.2s" calcMode="spline" dur="0.6s"
-                         keySplines=".36,.61,.3,.98;.36,.61,.3,.98" values="12;22;12"></animate>
-              </rect>
-              <rect width={2.8} height={12} x={15.4} y={6} fill="currentColor">
-                <animate attributeName="y" begin="svgSpinnersBarsScale0.begin+0.3s" calcMode="spline" dur="0.6s"
-                         keySplines=".36,.61,.3,.98;.36,.61,.3,.98" values="6;1;6"></animate>
-                <animate attributeName="height" begin="svgSpinnersBarsScale0.begin+0.3s" calcMode="spline" dur="0.6s"
-                         keySplines=".36,.61,.3,.98;.36,.61,.3,.98" values="12;22;12"></animate>
-              </rect>
-              <rect width={2.8} height={12} x={20.2} y={6} fill="currentColor">
-                <animate id="svgSpinnersBarsScale1" attributeName="y" begin="svgSpinnersBarsScale0.begin+0.4s"
-                         calcMode="spline" dur="0.6s" keySplines=".36,.61,.3,.98;.36,.61,.3,.98"
-                         values="6;1;6"></animate>
-                <animate attributeName="height" begin="svgSpinnersBarsScale0.begin+0.4s" calcMode="spline" dur="0.6s"
-                         keySplines=".36,.61,.3,.98;.36,.61,.3,.98" values="12;22;12"></animate>
-              </rect>
-            </svg> : <Box>
-              Зарегестрироваться
-            </Box>
-            }
+            {isPending ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z" opacity={0.25}></path>
+                <path fill="currentColor" d="M10.72,19.9a8,8,0,0,1-6.5-9.79A7.77,7.77,0,0,1,10.4,4.16a8,8,0,0,1,9.49,6.52A1.54,1.54,0,0,0,21.38,12h.13a1.37,1.37,0,0,0,1.38-1.54,11,11,0,1,0-12.7,12.39A1.54,1.54,0,0,0,12,21.34h0A1.47,1.47,0,0,0,10.72,19.9Z">
+                  <animateTransform attributeName="transform" dur="0.75s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"></animateTransform>
+                </path>
+              </svg>
+            ) : (
+              <Box>
+                Зарегестрировать
+              </Box>
+            )}
           </Button>
           {isMessage}
         </Stack>
       </form>
-      {/*<Alert color="warning">Ввод нового пользователя</Alert>*/}
     </Stack>
   );
 }

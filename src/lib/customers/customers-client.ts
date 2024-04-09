@@ -64,6 +64,23 @@ export class CustomersClient {
       return { error: error.message };
     }
   }
+
+  async createNewCustomer(value){
+    let getEmail = await getHeaders()
+    try {
+      const sendData = {
+        email: getEmail.email,
+        addData: value
+      };
+      return await axios.post('http://localhost:5000/customers/create_new_customer',
+               JSON.stringify(sendData),
+        {headers: await getHeaders()}
+      )
+    } catch (error) {
+      console.error('Произошла ошибка:', error.message);
+      return { error: error.message };
+    }
+  }
 }
 
 export const customersClient = new CustomersClient();

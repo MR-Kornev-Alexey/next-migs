@@ -22,6 +22,7 @@ import {addNotifications} from "@/store/notificationReducer";
 
 export function MainNav(): React.JSX.Element {
   const [openNav, setOpenNav] = React.useState<boolean>(false);
+  const [dataUserInComponent, setDataUserInComponent] = React.useState('');
   const userPopover = usePopover<HTMLDivElement>();
   const dispatch: AppDispatch = useDispatch();
   const dataUser = localStorage.getItem('custom-auth-token');
@@ -90,7 +91,7 @@ export function MainNav(): React.JSX.Element {
           </Stack>
         </Stack>
       </Box>
-      <UserPopover anchorEl={userPopover.anchorRef.current} onClose={userPopover.handleClose} open={userPopover.open} />
+      <UserPopover dataUser={dataUser} anchorEl={userPopover.anchorRef.current} onClose={userPopover.handleClose} open={userPopover.open} />
       <MobileNav
         onClose={() => {
           setOpenNav(false);

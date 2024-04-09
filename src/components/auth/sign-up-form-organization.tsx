@@ -12,7 +12,7 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import {Controller, useForm} from 'react-hook-form';
-import {organizationClient} from "@/lib/profile/organization-client";
+import {organizationClient} from "@/lib/organizations/organization-client";
 import {z as zod} from 'zod';
 
 import {paths} from '@/paths';
@@ -48,13 +48,14 @@ const defaultValues = {
   organizationEmail: 'info@nii-migs.ru'
 } satisfies Values;
 
-export function SignUpFormOrganization(): React.JSX.Element {
+export function SignUpFormOrganization({isFirst, changeData}): React.JSX.Element {
   const router = useRouter();
 
   const {checkSession} = useUser();
 
   const [isPending, setIsPending] = React.useState<boolean>(false);
   const [isMessage, setIsMessage] = React.useState<string>('');
+
 
   const {
     control,
@@ -67,26 +68,31 @@ export function SignUpFormOrganization(): React.JSX.Element {
     async (values: Values): Promise<void> => {
       // setIsPending(true);
 
-      const {error, receivedData} = await organizationClient.initSignOrganization(values);
-      console.log(receivedData)
+      const result = await organizationClient.initSignOrganization(values);
+      console.log(result)
 
-      if (error) {
-        setError('root', {type: 'server', message: error});
+      // Проверить наличие ошибки
+      if (result?.error) {
+        setError('root', { type: 'server', message: result?.error });
         setIsPending(false);
-        setIsMessage('Ошибка ввода, повторите снова')
+        setIsMessage('Ошибка ввода, повторите снова');
         return;
       }
 
-      // Refresh the auth store
-      await checkSession?.();
-      router.refresh();
+// Проверить наличие дополнительных данных
+      if (result) {
+        setIsPending(false);
+        changeData()
+      }
     },
     [checkSession, router, setError]
   );
   return (
     <Stack spacing={3}>
       <Stack spacing={1}>
-        <Typography variant="h4">Первичная регистрация основной организации</Typography>
+        {isFirst?<Typography variant="h4">Первичная регистрация основной организации</Typography>:
+          <Typography variant="h4">Добавление новой организации</Typography>
+        }
       </Stack>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
@@ -191,7 +197,7 @@ export function SignUpFormOrganization(): React.JSX.Element {
                          keySplines=".36,.61,.3,.98;.36,.61,.3,.98" values="12;22;12"></animate>
               </rect>
             </svg> : <Box>
-              Зарегестрироваться
+              Зарегестрировать
             </Box>
             }
           </Button>

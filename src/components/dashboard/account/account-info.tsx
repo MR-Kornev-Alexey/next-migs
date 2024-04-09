@@ -7,7 +7,7 @@ import CardContent from '@mui/material/CardContent';
 import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import setRole from "@/lib/common/Role";
+import setRole from "@/lib/common/role";
 
 
 const user = {
@@ -32,6 +32,9 @@ export function AccountInfo({ dataUser }): React.JSX.Element {
             </Typography>
             <Typography color="text.secondary" variant="body2">
               {setRole(dataUser?.role)}
+            </Typography>
+            <Typography color="text.secondary" variant="body2">
+              {dataUser.organization.name}
             </Typography>
           </Stack>
         </Stack>
