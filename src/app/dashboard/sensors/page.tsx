@@ -77,11 +77,11 @@ export default function Page(): React.JSX.Element {
       <div>
         <Typography variant="h4">Датчики</Typography>
       </div>
+      <SensorsPaginationAndSelectTable rows={objects}/>
       <div>
         <Typography variant="h5">Выберите объект до просмотра датчиков</Typography>
       </div>
       <ObjectsPaginationAndSelectTable rows={objects}/>
-      <SensorsPaginationAndSelectTable rows={objects}/>
       <ModalNewObject isOpenObject={isModalObjectOpen} onCloseObject={closeObjectModal}
                       onRegistrationSuccess={onRegistrationSuccess} rowsOrganizations={organizations}/>
     </Stack>
