@@ -5,29 +5,16 @@ import {SignUpFormNewCustomer} from "@/components/auth/sign-up-form-new-customer
 import {SignUpFormOrganization} from "@/components/auth/sign-up-form-organization";
 import {X} from "@phosphor-icons/react";
 import Stack from "@mui/material/Stack";
+import {SignUpFormObject} from "@/components/auth/sign-up-form-objects";
 
-const ModalNewOrganization: React.FC = ({ isOpen, onClose}) => {
-  const [open, setOpen] = useState<boolean>(false);
-  const [isFirst, setIsFirst] = useState(false);
+const ModalNewObject: React.FC = ({ isOpenObject, onCloseObject, rowsOrganizations, onRegistrationSuccess}) => {
 
-  const handleOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-  const onRegistrationSuccess=(result)=> {
-    if (result)  {
-      alert(result.data)
-    }
-  }
 
   return (
     <Box>
       <Modal
-        open={isOpen}
-        onClose={onClose}
+        open={isOpenObject}
+        onClose={onCloseObject}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
@@ -46,14 +33,14 @@ const ModalNewOrganization: React.FC = ({ isOpen, onClose}) => {
 
           <Stack id="modal-modal-title"  sx={{marginBottom:3}}>
             <Box display="flex" alignItems="center" justifyContent="flex-end">
-              <X size={32} onClick={onClose} style={{ cursor: "pointer" }} />
+              <X size={32} onClick={onCloseObject} style={{ cursor: "pointer" }} />
             </Box>
           </Stack>
-          <SignUpFormOrganization isFirst={isFirst} closeModal={onClose} onRegistrationSuccess={onRegistrationSuccess}/>
+          <SignUpFormObject  closeModal={onCloseObject} onRegistrationObjectSuccess={onRegistrationSuccess} rowsOrganizations={rowsOrganizations}/>
         </Box>
       </Modal>
     </Box>
   );
 }
 
-export default ModalNewOrganization;
+export default ModalNewObject;

@@ -82,7 +82,7 @@ export function ProfileForm({changeData}): React.JSX.Element {
         userId = JSON.parse(dataUser).id;
       }
       console.log(values)
-      setIsPending(true);
+      // setIsPending(true);
       const updatedValues = { ...values, user_id: userId };
 
       // console.log(updatedValues);

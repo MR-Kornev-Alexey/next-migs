@@ -4,38 +4,59 @@ import { GuestGuard } from '@/components/auth/guest-guard';
 import { Layout } from '@/components/auth/layout';
 import { SignUpFormOrganization } from '@/components/auth/sign-up-form-organization';
 import CheckOrganisation from '@/components/auth/check-organization';
-import axios from 'axios';
-import {organizationClient} from "@/lib/organizations/organization-client";
-import {useState} from "react";
+import { organizationClient } from "@/lib/organizations/organization-client";
+import Box from "@mui/material/Box";
+import Alert from "@mui/material/Alert";
 
-export default function Page(): React.JSX.Element {
+function Page(): React.JSX.Element {
   const [initialData, setInitialData] = React.useState(null);
   const [statusInit, setStatusInit] = React.useState(false);
-  const [isFirst, setIsFirst] = useState(true);
+  const [isFirst, setIsFirst] = React.useState(true);
+  const [isMessage, setIsMessage] = React.useState('');
+  const [isError, setIsError] = React.useState(false);
+
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const headers = {
-          'Content-Type': 'application/json'
-        };
-        const responseCheckOrganization = await organizationClient.checkOrganization({'inn': "77168520612"})
-        if(responseCheckOrganization?.data.statusCode === 200){
-          setStatusInit(true)
-          setInitialData(responseCheckOrganization?.data.organization);
+        const result = await organizationClient.checkOrganization({'inn': "7716852062"});
+        if (result?.data.statusCode === 200) {
+          setStatusInit(true);
+          setIsFirst(false);
+          setInitialData(result?.data.organization);
+          setIsMessage("");
         }
       } catch (error) {
-        console.error('Ошибка при загрузке данных:', error);
+        console.error('Ошибка при записи данных:', error);
+        setIsMessage("Ошибка проверки данных");
+        setIsError(true);
       }
     };
+
     fetchData();
   }, []);
+
+  const renderContent = () => {
+    if (isError) {
+      return <Alert sx={{marginTop:2}} color="error">{isMessage}</Alert>;
+    } else {
+      return statusInit ? <CheckOrganisation initialData={initialData}/> : <SignUpFormOrganization isFirst={isFirst} onRegistrationSuccess={handleRegistrationSuccess} />;
+    }
+  };
+  const handleRegistrationSuccess = (result) => {
+    setStatusInit(true);
+    setInitialData(result?.data.organization);
+  };
 
   return (
     <Layout>
       <GuestGuard>
-        {statusInit?<CheckOrganisation initialData={initialData}/>:<SignUpFormOrganization isFirst={isFirst}  />
-        }
+        <Box>
+          {renderContent()}
+        </Box>
       </GuestGuard>
     </Layout>
   );
 }
+
+export default Page;
+

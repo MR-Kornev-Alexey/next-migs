@@ -10,47 +10,74 @@ import { UpdatePasswordForm } from '@/components/dashboard/settings/update-passw
 import {OrganizationsTable} from "@/components/dashboard/organizations/organizations-table";
 import {useEffect, useState} from "react";
 import type {Customer} from "@/components/dashboard/customer/customers-table";
-import {customersClient} from "@/lib/customers/customers-client";
 import {organizationClient} from "@/lib/organizations/organization-client";
 import ModalNewOrganization from "@/components/modal/modal-new-organization";
 import Pagination from "@mui/material/Pagination";
+import ObjectsPaginationActionsTable from "@/components/tables/objectsPaginationActionsTable";
+import OrganizationsPaginationActionsTable from "@/components/tables/organizationsPaginationActionsTable";
+import ModalNewObject from "@/components/modal/modal-new-object";
+import {objectClient} from "@/lib/objects/object-client";
+import Button from "@mui/material/Button";
+import {Upload as UploadIcon} from "@phosphor-icons/react/dist/ssr/Upload";
+import {Download as DownloadIcon} from "@phosphor-icons/react/dist/ssr/Download";
+import ImportExportButtons from "@/lib/common/importExportButtons";
 
 
 
 export default function Page(): React.JSX.Element {
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [organizations, setOrganizations] = useState<Customer[]>([]);
+  const [objects, setObjects] = useState<Customer[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [page, setPage] = React.useState(1);
-  const [pageCounter, setPageCounter] = React.useState(1);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
-  const handleChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    setPage(value);
-  };
+  const [isModalObjectOpen, setIsModalObjectOpen] = useState(false);
+
   const openModal = () => {
     setIsModalOpen(true);
   };
-
+  const openModalObject = () => {
+    setIsModalObjectOpen(true);
+  };
   const closeModal = () => {
     setIsModalOpen(false);
   };
-  function applyPagination(rows: any, page: number, rowsPerPage: number) {
-    const startIndex = (page - 1) * rowsPerPage;
-    const endIndex = startIndex + rowsPerPage;
-    return rows.slice(startIndex, endIndex);
-  }
-  const paginatedCustomers = applyPagination(customers, page, rowsPerPage);
+
+  const onExportClick = () => {
+    // setIsModalObjectOpen(false);
+  };
+
+  const onImportClick = () => {
+    // setIsModalObjectOpen(false);
+  };
+  const closeObjectModal = () => {
+    setIsModalObjectOpen(false);
+  };
 
   useEffect(() => {
-    fetchAllOrganizations().then((data) => {
-      setCustomers(data?.data);
-      setPageCounter(Math.ceil((data?.data.length) / rowsPerPage));
-      setLoading(false);
-    }).catch((error) => {
-      console.error('Ошибка при загрузке данных:', error);
-      setLoading(false);
-    });
+    Promise.all([fetchAllOrganizations(), fetchAllObjects()])
+      .then(([organizationsData, objectsData]) => {
+        setOrganizations(organizationsData?.data);
+        setObjects(objectsData?.data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error('Ошибка при загрузке данных:', error);
+        setLoading(false);
+      });
   }, []);
+
+  async function fetchAllOrganizations(): Promise<Customer[]> {
+    return await organizationClient.getAllOrganization();
+  }
+
+  async function fetchAllObjects(): Promise<Customer[]> {
+    return await objectClient.getAllObjects();
+  }
+  async function onRegistrationSuccess(objectsData) {
+    console.log(objectsData.data.allObjects)
+    setObjects(objectsData?.data.allObjects);
+  }
+
+
   return (
     <Stack spacing={3}>
       <div>
@@ -60,28 +87,18 @@ export default function Page(): React.JSX.Element {
       <div>
         <Typography variant="h4">Организации</Typography>
       </div>
-      <Stack spacing={2}>
-        <Typography>Страница: {page}</Typography>
-        <Pagination count={pageCounter} page={page} onChange={handleChange}/>
-      </Stack>
-      <OrganizationsTable
-        rows={paginatedCustomers}
-        openModal={openModal}
-      />
-
+      <ImportExportButtons  onExportClick={onExportClick} onImportClick={onImportClick}/>
+      <OrganizationsPaginationActionsTable rows={organizations}   openModal={openModal} />
       <div>
         <Typography variant="h4">Объекты</Typography>
       </div>
+      <ImportExportButtons  onExportClick={onExportClick} onImportClick={onImportClick}/>
+      <ObjectsPaginationActionsTable rows={objects}   openModal={openModalObject} />
       <ModalNewOrganization isOpen={isModalOpen} onClose={closeModal}/>
-
+      <ModalNewObject isOpenObject={isModalObjectOpen} onCloseObject={closeObjectModal} onRegistrationSuccess={onRegistrationSuccess} rowsOrganizations={organizations}  />
     </Stack>
   );
 }
 
-async function fetchAllOrganizations(): Promise<Customer[]> {
-  // Здесь должен быть ваш код для получения данных с сервера
-  const responseAllOrganizations = await organizationClient.getAllOrganization();
-  console.log('responseAllOrganizations - ', responseAllOrganizations)
-  return responseAllOrganizations
-}
+
 

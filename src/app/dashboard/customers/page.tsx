@@ -12,6 +12,8 @@ import {CustomersTable} from '@/components/dashboard/customer/customers-table';
 import {customersClient} from "@/lib/customers/customers-client";
 import ModalNewCustomer from "@/components/modal/modal-new-customer";
 import Pagination from "@mui/material/Pagination";
+import CustomPaginationActionsTable from "@/components/tables/customPaginationActionsTable";
+import ImportExportButtons from "@/lib/common/importExportButtons";
 
 export default function Page(): React.JSX.Element {
   const [page, setPage] = React.useState(1);
@@ -40,46 +42,30 @@ export default function Page(): React.JSX.Element {
   const closeModal = () => {
     setIsModalOpen(false);
   };
+  const onExportClick = () => {
+    // setIsModalObjectOpen(false);
+  };
 
-  function applyPagination(rows: any, page: number, rowsPerPage: number) {
-    const startIndex = (page - 1) * rowsPerPage;
-    const endIndex = startIndex + rowsPerPage;
-    return rows.slice(startIndex, endIndex);
-  }
-  const paginatedCustomers = applyPagination(customers, page, rowsPerPage);
+  const onImportClick = () => {
+    // setIsModalObjectOpen(false);
+  };
   const handleChange = (event: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
   };
   return (
     <Stack spacing={3}>
-      <Stack direction="row" spacing={3}>
-        <Stack spacing={1} sx={{ flex: '1 1 auto' }}>
-          <Typography variant="h4">Пользователи</Typography>
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <Button color="inherit" startIcon={<UploadIcon fontSize="var(--icon-fontSize-md)" />}>
-              Импорт
-            </Button>
-            <Button color="inherit" startIcon={<DownloadIcon fontSize="var(--icon-fontSize-md)" />}>
-              Экспорт
-            </Button>
-          </Stack>
-        </Stack>
-      </Stack>
-      <CustomersFilters />
-      <Stack spacing={2}>
-        <Typography>Страница: {page}</Typography>
-        <Pagination count={pageCounter} page={page} onChange={handleChange} />
-      </Stack>
-      <CustomersTable
-        rows={paginatedCustomers}
-        openModal = {openModal}
-      />
+      <div>
+        <Typography variant="h4">Пользователи</Typography>
+      </div>
+      <ImportExportButtons onExportClick={onExportClick} onImportClick={onImportClick}/>
+      <CustomersFilters/>
+      <CustomPaginationActionsTable rows={customers}/>
       <ModalNewCustomer isOpen={isModalOpen} onClose={closeModal}/>
     </Stack>
   );
 }
 
 async function fetchCustomers(): Promise<Customer[]> {
- const result = await customersClient.getCustomers()
- return result?.data
+  const result = await customersClient.getCustomers()
+  return result?.data
 }

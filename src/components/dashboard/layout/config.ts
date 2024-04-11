@@ -6,7 +6,7 @@ export const navItems = [
   { key: 'customers', title: 'Пользователи', href: paths.dashboard.customers, icon: 'users' },
   { key: 'charts', title: 'Графики', href: paths.dashboard.integrations, icon: 'chart-bar' },
   { key: 'tables', title: 'Таблицы', href: paths.dashboard.integrations, icon: 'table' },
-  { key: 'integrations', title: 'Датчики', href: paths.dashboard.integrations, icon: 'plugs-connected' },
+  { key: 'sensors', title: 'Датчики', href: paths.dashboard.sensors, icon: 'plugs-connected' },
   { key: 'settings', title: 'Настройки', href: paths.dashboard.settings, icon: 'gear-six' },
   { key: 'account', title: 'Мой аккаунт', href: paths.dashboard.account, icon: 'user' },
   { key: 'manual', title: 'Руководство пользователя', href: paths.dashboard.manual, icon: 'notebook' },

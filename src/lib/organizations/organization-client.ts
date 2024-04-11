@@ -1,6 +1,5 @@
 'use client';
 import axios from 'axios';
-import {FormAdditionalData} from "@/types/formAdditionalData";
 import {FormDataOrganization} from "@/types/formDataOrganization";
 
 
@@ -50,13 +49,11 @@ export class OrganizationClient {
       const headers = {
         'Content-Type': 'application/json'
       };
-      const responseOrganization = await axios.post(
+      return await axios.post(
         'http://localhost:5000/organization/init_organization',
         JSON.stringify(formDataOrganization), // Преобразование объекта в JSON-строку
-        { headers } // Передача заголовков в конфигурацию запроса
+        {headers} // Передача заголовков в конфигурацию запроса
       );
-      console.log(responseOrganization)
-      return responseOrganization;
     } catch (error) {
       console.error('Произошла ошибка:', error.message);
       return { error: error.message };

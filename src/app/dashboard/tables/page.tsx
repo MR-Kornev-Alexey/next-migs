@@ -1,11 +1,10 @@
+"use client"
 import * as React from 'react';
-import type { Metadata } from 'next';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { config } from '@/config';
-
-export const metadata = { title: `Графики ${config.site.name}` } satisfies Metadata;
+import CustomPaginationActionsTable from "@/components/tables/customPaginationActionsTable";
 
 export default function Page(): React.JSX.Element {
   return (
@@ -13,6 +12,7 @@ export default function Page(): React.JSX.Element {
       <div>
         <Typography variant="h4">Таблицы</Typography>
       </div>
+      < CustomPaginationActionsTable />
     </Stack>
   );
 }

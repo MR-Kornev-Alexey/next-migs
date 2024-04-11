@@ -43,31 +43,31 @@ export function AccountDetailsForm({dataUser , changeData}): React.JSX.Element {
             <Grid md={6} xs={12}>
               <FormControl fullWidth disabled>
                 <InputLabel>Имя</InputLabel>
-                <OutlinedInput defaultValue={dataUser.v_AdditionalUserInfo[0].firstName} label="Имя" name="firstName" />
+                <OutlinedInput defaultValue={dataUser?.additionalUserInfo[0].firstName} label="Имя" name="firstName" />
               </FormControl>
             </Grid>
             <Grid md={6} xs={12}>
               <FormControl fullWidth disabled>
                 <InputLabel>Фамилия</InputLabel>
-                <OutlinedInput defaultValue={dataUser.v_AdditionalUserInfo[0].surName}  label="Фамилия" name="lastName" />
+                <OutlinedInput defaultValue={dataUser?.additionalUserInfo[0].surName}  label="Фамилия" name="lastName" />
               </FormControl>
             </Grid>
             <Grid md={6} xs={12}>
               <FormControl fullWidth disabled>
                 <InputLabel>Номер телефона</InputLabel>
-                <OutlinedInput defaultValue={dataUser.v_AdditionalUserInfo[0].phone}  label="Номер телефона" name="phone" type="tel" />
+                <OutlinedInput defaultValue={dataUser?.additionalUserInfo[0].phone}  label="Номер телефона" name="phone" type="tel" />
               </FormControl>
             </Grid>
             <Grid md={6} xs={12}>
               <FormControl fullWidth disabled>
                 <InputLabel>Telegram</InputLabel>
-                <OutlinedInput defaultValue={dataUser.v_AdditionalUserInfo[0].telegram}  label="Telegram" />
+                <OutlinedInput defaultValue={dataUser?.additionalUserInfo[0].telegram}  label="Telegram" />
               </FormControl>
             </Grid>
             <Grid md={6} xs={12}>
               <FormControl fullWidth disabled>
                 <InputLabel>Должность</InputLabel>
-                <OutlinedInput defaultValue={dataUser.v_AdditionalUserInfo[0].position}  label="Должность" />
+                <OutlinedInput defaultValue={dataUser?.additionalUserInfo[0].position}  label="Должность" />
               </FormControl>
             </Grid>
           </Grid>
