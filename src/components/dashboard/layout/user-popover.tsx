@@ -23,15 +23,13 @@ export interface UserPopoverProps {
   anchorEl: Element | null;
   onClose: () => void;
   open: boolean;
-  dataUser: any| null
 }
 
-export function UserPopover({ anchorEl, onClose, open , dataUser }: UserPopoverProps): React.JSX.Element {
+export function UserPopover({ anchorEl, onClose, open }: UserPopoverProps): React.JSX.Element {
 
   const { checkSession } = useUser();
-
+  const dataUser = JSON.parse(localStorage.getItem('custom-auth-token'))
   const router = useRouter();
-
   const handleSignOut = React.useCallback(async (): Promise<void> => {
     try {
       const { error } = await authClient.signOut();
@@ -61,12 +59,13 @@ export function UserPopover({ anchorEl, onClose, open , dataUser }: UserPopoverP
       slotProps={{ paper: { sx: { width: '240px' } } }}
     >
       <MenuList disablePadding sx={{ p: '8px', '& .MuiMenuItem-root': { borderRadius: 1 } }}>
-        <MenuItem component={RouterLink} href={paths.dashboard.settings} onClick={onClose}>
-          <ListItemIcon>
-            <GearSixIcon fontSize="var(--icon-fontSize-md)" />
-          </ListItemIcon>
-          Настройки
+        <MenuItem>
+          <Typography variant="body1">{dataUser?.name}</Typography>
         </MenuItem>
+        <MenuItem>
+          <Typography variant="body1">{dataUser?.email}</Typography>
+        </MenuItem>
+        <Divider />
         <MenuItem component={RouterLink} href={paths.dashboard.account} onClick={onClose}>
           <ListItemIcon>
             <UserIcon fontSize="var(--icon-fontSize-md)" />

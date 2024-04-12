@@ -1,35 +1,27 @@
 'use client';
 import * as React from 'react';
-import type { Metadata } from 'next';
+import {useEffect, useState} from 'react';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-
-import { config } from '@/config';
-import { Notifications } from '@/components/dashboard/settings/notifications';
-import { UpdatePasswordForm } from '@/components/dashboard/settings/update-password-form';
-import {OrganizationsTable} from "@/components/dashboard/organizations/organizations-table";
-import {useEffect, useState} from "react";
+import {Notifications} from '@/components/dashboard/settings/notifications';
 import type {Customer} from "@/components/dashboard/customer/customers-table";
 import {organizationClient} from "@/lib/organizations/organization-client";
 import ModalNewOrganization from "@/components/modal/modal-new-organization";
-import Pagination from "@mui/material/Pagination";
 import ObjectsPaginationActionsTable from "@/components/tables/objectsPaginationActionsTable";
 import OrganizationsPaginationActionsTable from "@/components/tables/organizationsPaginationActionsTable";
 import ModalNewObject from "@/components/modal/modal-new-object";
 import {objectClient} from "@/lib/objects/object-client";
-import Button from "@mui/material/Button";
-import {Upload as UploadIcon} from "@phosphor-icons/react/dist/ssr/Upload";
-import {Download as DownloadIcon} from "@phosphor-icons/react/dist/ssr/Download";
 import ImportExportButtons from "@/lib/common/importExportButtons";
 
 
-
 export default function Page(): React.JSX.Element {
-  const [organizations, setOrganizations] = useState<Customer[]>([]);
-  const [objects, setObjects] = useState<Customer[]>([]);
+  const [organizations, setOrganizations] = useState([]);
+  const [objects, setObjects] = useState([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isModalObjectOpen, setIsModalObjectOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isModalObjectOpen, setIsModalObjectOpen] = useState<boolean>(false);
+  const [isSelectedObjects, setIsSelectedObjects] = useState([]);
+
 
   const openModal = () => {
     setIsModalOpen(true);
@@ -73,10 +65,16 @@ export default function Page(): React.JSX.Element {
     return await objectClient.getAllObjects();
   }
   async function onRegistrationSuccess(objectsData) {
-    console.log(objectsData.data.allObjects)
     setObjects(objectsData?.data.allObjects);
   }
+  async function onSelectedRowsChange(selected) {
+    console.log(selected)
+    setIsSelectedObjects(selected)
+  }
 
+  function onSelectedRowsObjects(objects, selected) {
+    return objects.filter(obj => selected.includes(obj.organization_id));
+  }
 
   return (
     <Stack spacing={3}>
@@ -88,12 +86,12 @@ export default function Page(): React.JSX.Element {
         <Typography variant="h4">Организации</Typography>
       </div>
       <ImportExportButtons  onExportClick={onExportClick} onImportClick={onImportClick}/>
-      <OrganizationsPaginationActionsTable rows={organizations}   openModal={openModal} />
+      <OrganizationsPaginationActionsTable rows={organizations}   openModal={openModal} onSelectedRowsChange={onSelectedRowsChange}/>
       <div>
         <Typography variant="h4">Объекты</Typography>
       </div>
       <ImportExportButtons  onExportClick={onExportClick} onImportClick={onImportClick}/>
-      <ObjectsPaginationActionsTable rows={objects}   openModal={openModalObject} />
+      <ObjectsPaginationActionsTable rows={onSelectedRowsObjects(objects, isSelectedObjects)}   openModal={openModalObject} />
       <ModalNewOrganization isOpen={isModalOpen} onClose={closeModal}/>
       <ModalNewObject isOpenObject={isModalObjectOpen} onCloseObject={closeObjectModal} onRegistrationSuccess={onRegistrationSuccess} rowsOrganizations={organizations}  />
     </Stack>

@@ -19,6 +19,8 @@ import { Logo } from '@/components/core/logo';
 
 import { navItems } from './config';
 import { navIcons } from './nav-icons';
+import {getNavItemsForRole} from "@/components/dashboard/layout/configRole";
+import setRole from "@/lib/common/role";
 
 export interface MobileNavProps {
   onClose?: () => void;
@@ -28,7 +30,12 @@ export interface MobileNavProps {
 
 export function MobileNav({ open, onClose }: MobileNavProps): React.JSX.Element {
   const pathname = usePathname();
-
+  let role = ''
+  const dataUser = localStorage.getItem('custom-auth-token');// Получение  роли  пользователя из контекста или хранилища
+  if (dataUser != null) {
+    role = JSON.parse(dataUser).role
+  }
+  const navItems = getNavItemsForRole(role);
   return (
     <Drawer
       PaperProps={{
@@ -73,11 +80,11 @@ export function MobileNav({ open, onClose }: MobileNavProps): React.JSX.Element 
           }}
         >
           <Box sx={{ flex: '1 1 auto' }}>
-            <Typography color="var(--mui-palette-neutral-400)" variant="body2">
-              Workspace
+            <Typography color="var(--mui-palette-neutral-400)" variant="h5">
+              КИС МИГС
             </Typography>
-            <Typography color="inherit" variant="subtitle1">
-              Devias
+            <Typography color="var(--mui-palette-neutral-400)" variant="h6" sx={{marginTop:1}}>
+              {setRole(role)}
             </Typography>
           </Box>
           <CaretUpDownIcon />

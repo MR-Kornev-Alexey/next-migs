@@ -5,17 +5,7 @@ import {SignUpFormNewCustomer} from "@/components/auth/sign-up-form-new-customer
 import Stack from "@mui/material/Stack";
 import {X} from "@phosphor-icons/react";
 
-const ModalNewCustomer: React.FC = ({ isOpen, onClose }) => {
-  const [open, setOpen] = useState<boolean>(false);
-
-  const handleOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-
+const ModalNewCustomer: React.FC = ({ isOpen, onClose, onRegistrationSuccess }) => {
   return (
     <Box>
       <Modal
@@ -41,7 +31,7 @@ const ModalNewCustomer: React.FC = ({ isOpen, onClose }) => {
               <X size={32} onClick={onClose} style={{ cursor: "pointer" }} />
             </Box>
           </Stack>
-          <SignUpFormNewCustomer/>
+          <SignUpFormNewCustomer onRegistrationSuccess={onRegistrationSuccess} closeModal={onClose}/>
         </Box>
       </Modal>
     </Box>

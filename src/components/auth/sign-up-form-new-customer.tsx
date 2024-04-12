@@ -15,74 +15,77 @@ import {useUser} from '@/hooks/use-user';
 import Box from "@mui/material/Box";
 import OrganisationList from "@/components/select/organisation-list";
 import {useEffect} from "react";
-import {fetchAllOrganizations} from "@/components/dashboard/customer/fetchAllOrganizations";
+import {fetchAllOrganizations} from "@/components/dashboard/organizations/fetchAllOrganizations";
 import {customersClient} from "@/lib/customers/customers-client";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import Alert from "@mui/material/Alert";
 
 const schema = zod.object({
     name: zod.string()
       .min(1, {message: 'Ввод username обязателен'}),
     email: zod.string().min(1, {message: 'Ввод email обязателен'}).email(),
-    password: zod.string().min(8, {message: 'Минимальное количество 8 знаков'})
+    password: zod.string().min(8, {message: 'Минимальное количество 8 знаков'}),
+    organization_id: zod.string().min(1, {message: 'Ввод организации обязателен'}),
+    registration_status: zod.string(),
+    role: zod.string()
   }
 );
 
 type Values = zod.infer<typeof schema>;
-const defaultValues = {name: '', email: '', password: '' } satisfies Values;
+const defaultValues = {name: 'dimas', email: 'dimas@mail.ru', password: '', organization_id: '', registration_status: "NOT_COMPLETED",  role: 'customer'} satisfies Values;
 
-export function SignUpFormNewCustomer(): React.JSX.Element {
-  const router = useRouter();
+export function SignUpFormNewCustomer({onRegistrationSuccess, closeModal}): React.JSX.Element {
   const [isPending, setIsPending] = React.useState<boolean>(false);
   const [isMessage, setIsMessage] = React.useState<string>('');
+  const [alertColor, setAlertColor] = React.useState<string>('');
   const [isAllOrganizations, setAllOrganizations] = React.useState<string>([]);
-  const [formData, setFormData] = React.useState({
-    organization_id: '', // Используем выбранную организацию
-    registration_status: "NOT_COMPLETED",
-    role: 'customer'
-  });
-
-  const handleSelectOrganisation = (organisationId: string) => {
-    setFormData(prevData => ({
-      ...prevData,
-      organization_id: organisationId,
-    }));
-  };
 
   useEffect(() => {
-    // Здесь вы можете выполнять запрос к серверу для получения данных
-    // Например, с использованием fetch или axios
     fetchAllOrganizations().then((data) => {
       console.log(data)
       setAllOrganizations(data);
-      // setPageCounter(Math.floor((data?.data.length)/rowsPerPage))
-      // setLoading(false);
     }).catch((error) => {
       console.error('Ошибка при загрузке данных:', error);
-      // setLoading(false);
     });
   }, []);
 
   const {
     control,
     handleSubmit,
-    setError,
     formState: {errors},
   } = useForm<Values>({defaultValues, resolver: zodResolver(schema)});
 
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
       setIsPending(true);
-
-      const updatedValues = {
-        ...values,
-        ...formData
-      };
-      const result = await customersClient.createNewCustomer(updatedValues);
-      console.log(result);
-
+      setIsMessage("")
+      const result = await customersClient.createNewCustomer(values);
+      if(result?.data?.statusCode === 400){
+        // console.log("result --- ", result?.data);
+        setIsPending(false);
+        setIsMessage(result?.data?.answer)
+        setAlertColor( "error");
+      }
+      if(result?.data?.statusCode === 200){
+        console.log("result --- ", result?.data);
+        setIsPending(false);
+        setAlertColor( "success");
+        setIsMessage(result?.data?.answer)
+        onRegistrationSuccess(result?.data);
+        setTimeout(() => {
+          // обновленные данные в таблицу
+          closeModal(false)
+        }, 2000);
+      }
       setIsPending(false);
     },
-    [ router, setError, formData]
+    []
   );
+  const organizationOptions = isAllOrganizations.map(user => ({
+    value: user.id,
+    label: user.name
+  }));
 
   return (
     <Stack spacing={3}>
@@ -123,8 +126,32 @@ export function SignUpFormNewCustomer(): React.JSX.Element {
               </FormControl>
             )}
           />
-          <OrganisationList organisations={isAllOrganizations} onSelectOrganisation={handleSelectOrganisation} />
-          <Button disabled={isPending} type="submit" variant="contained">
+          <Controller
+            control={control}
+            name="organization_id"
+            defaultValue="-1"
+            render={({ field }) => (
+              <FormControl error={Boolean(errors.organization_id)}>
+                <InputLabel id="select-label">Выберите организацию</InputLabel>
+                <Select
+                  {...field}
+                  labelId="select-label"
+                  label="Выберите вариант"
+                >
+                  <MenuItem disabled value="-1">
+                    Выберите организацию
+                  </MenuItem>
+                  {organizationOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {errors.organization_id ? <FormHelperText>{errors.organization_id.message}</FormHelperText> : null}
+              </FormControl>
+            )}
+          />
+          <Button disabled={isPending} type="submit" variant="contained" sx={{my:1}}>
             {isPending ? (
               <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z" opacity={0.25}></path>
@@ -134,11 +161,11 @@ export function SignUpFormNewCustomer(): React.JSX.Element {
               </svg>
             ) : (
               <Box>
-                Зарегестрировать
+                Зарегистрировать
               </Box>
             )}
           </Button>
-          {isMessage}
+          {isMessage&&<Alert color={alertColor}>{isMessage}</Alert>}
         </Stack>
       </form>
     </Stack>

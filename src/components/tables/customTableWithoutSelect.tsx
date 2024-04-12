@@ -17,24 +17,13 @@ import Button from "@mui/material/Button";
 import {Trash} from "@phosphor-icons/react";
 
 
-export default function CustomPaginationActionsTable({ rows, openModal, onSelectedRowsChange }) {
+export default function CustomTableWithoutSelect({ rows, openModal, selectOrganization, restoreAllOrganization }) {
   const [page, setPage] = React.useState(0);
+  const [isButtonClear, setIsButtonClear] = React.useState(false);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
-  const rowIds = React.useMemo(() => {
-    return rows.map((customer) => customer.id);
-  }, [rows]);
-
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows =
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
-  const { selectAll, deselectAll, selectOne, deselectOne, selected } = useSelection(rowIds);
-
-  React.useEffect(() => {
-    onSelectedRowsChange(selected ? Array.from(selected) : []);
-  }, [selected]);
-
-  const selectedSome = (selected?.size ?? 0) > 0 && (selected?.size ?? 0) < rows.length;
-  const selectedAll = rows.length > 0 && selected?.size === rows.length;
 
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
@@ -50,24 +39,12 @@ export default function CustomPaginationActionsTable({ rows, openModal, onSelect
     setPage(0);
   };
 
+
   return (
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 500 }} aria-label="custom pagination table">
         <TableHead>
           <TableRow>
-            <TableCell padding="checkbox">
-              <Checkbox
-                checked={selectedAll}
-                indeterminate={selectedSome}
-                onChange={(event) => {
-                  if (event.target.checked) {
-                    selectAll();
-                  } else {
-                    deselectAll();
-                  }
-                }}
-              />
-            </TableCell>
             <TableCell  align="center">
               Организация</TableCell>
             <TableCell>Username</TableCell>
@@ -88,22 +65,9 @@ export default function CustomPaginationActionsTable({ rows, openModal, onSelect
               ? rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               : rows
           ).map((row) => {
-            const isSelected = selected?.has(row.id);
             return (
-              <TableRow key={row.id} selected={isSelected}>
-                <TableCell padding="checkbox">
-                  <Checkbox
-                    checked={isSelected}
-                    onChange={(event) => {
-                      if (event.target.checked) {
-                        selectOne(row.id);
-                      } else {
-                        deselectOne(row.id);
-                      }
-                    }}
-                  />
-                </TableCell>
-                <TableCell >
+              <TableRow key={row.id}>
+                <TableCell sx={{cursor: "pointer"}} onClick={() => { selectOrganization(row.organization_id); setIsButtonClear(true); }}>
                   {row.organization.name}
                 </TableCell>
                 <TableCell component="th" scope="row">
@@ -145,7 +109,8 @@ export default function CustomPaginationActionsTable({ rows, openModal, onSelect
           </TableRow>
         </TableFooter>
       </Table>
-      <Box display="flex" justifyContent="flex-end">
+      <Box display="flex" justifyContent="space-between">
+        {isButtonClear&&<Button variant="contained" onClick={() => { restoreAllOrganization(); setIsButtonClear(false); }}>Сбросить выборку</Button>}
         <Button variant="contained"  onClick={openModal}>Добавить пользователя</Button>
       </Box>
     </TableContainer>

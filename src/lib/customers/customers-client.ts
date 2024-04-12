@@ -68,12 +68,8 @@ export class CustomersClient {
   async createNewCustomer(value){
     let getEmail = await getHeaders()
     try {
-      const sendData = {
-        email: getEmail.email,
-        addData: value
-      };
       return await axios.post('http://localhost:5000/customers/create_new_customer',
-               JSON.stringify(sendData),
+               JSON.stringify(value),
         {headers: await getHeaders()}
       )
     } catch (error) {

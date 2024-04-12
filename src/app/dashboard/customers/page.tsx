@@ -1,34 +1,42 @@
 'use client';
 import * as React from 'react';
 import {useEffect, useState} from 'react';
-import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import {Download as DownloadIcon} from '@phosphor-icons/react/dist/ssr/Download';
-import {Upload as UploadIcon} from '@phosphor-icons/react/dist/ssr/Upload';
 import {CustomersFilters} from '@/components/dashboard/customer/customers-filters';
 import type {Customer} from '@/components/dashboard/customer/customers-table';
-import {CustomersTable} from '@/components/dashboard/customer/customers-table';
 import {customersClient} from "@/lib/customers/customers-client";
 import ModalNewCustomer from "@/components/modal/modal-new-customer";
-import Pagination from "@mui/material/Pagination";
 import CustomPaginationActionsTable from "@/components/tables/customPaginationActionsTable";
 import ImportExportButtons from "@/lib/common/importExportButtons";
+import CustomTableWithoutSelect from "@/components/tables/customTableWithoutSelect";
 
 export default function Page(): React.JSX.Element {
-  const [page, setPage] = React.useState(1);
-  const [pageCounter, setPageCounter] = React.useState(1);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSelectedCustomers, setIsSelectedCustomers] = useState([]);
 
   useEffect(() => {
+    setLoading(true);
     fetchCustomers().then((data) => {
-      console.log(data)
+      let selected = [];
+
+      // Перебор каждого пользователя
+      data?.allUsers.forEach(user => {
+        // Проверка, существует ли уже organization_id в массиве selected
+        if (!selected.includes(user.organization_id)) {
+          // Если нет, добавляем его в массив selected
+          selected.push(user.organization_id);
+        }
+      });
+
+      // Установка массива selected в состояние isSelectedCustomers
+      setIsSelectedCustomers(selected);
+
+      // Установка данных о пользователях и завершение загрузки
       setCustomers(data?.allUsers);
       setLoading(false);
-      setPageCounter(Math.ceil((data?.allUsers.length) / rowsPerPage));
     }).catch((error) => {
       console.error('Ошибка при загрузке данных:', error);
       setLoading(false);
@@ -38,20 +46,39 @@ export default function Page(): React.JSX.Element {
   const openModal = () => {
     setIsModalOpen(true);
   };
-
   const closeModal = () => {
     setIsModalOpen(false);
   };
   const onExportClick = () => {
     // setIsModalObjectOpen(false);
   };
-
   const onImportClick = () => {
     // setIsModalObjectOpen(false);
   };
-  const handleChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    setPage(value);
-  };
+  async function onRegistrationSuccess(data) {
+    setCustomers(data.allUsers)
+  }
+  function onSelectedRowsChange(selected) {
+    console.log(selected)
+    if(selected.length > 0) {
+      setIsSelectedCustomers(selected)
+    }
+  }
+  function onSelectedRowsCustomers(objects, selected) {
+    return objects.filter(obj => selected.includes(obj.organization_id));
+  }
+  function restoreAllOrganization() {
+    let selected = [];
+    // Перебор каждого пользователя
+    customers.forEach(user => {
+      // Проверка, существует ли уже organization_id в массиве selected
+      if (!selected.includes(user?.organization_id)) {
+        // Если нет, добавляем его в массив selected
+        selected.push(user?.organization_id);
+      }
+      setIsSelectedCustomers(selected)
+    });
+  }
   return (
     <Stack spacing={3}>
       <div>
@@ -59,8 +86,15 @@ export default function Page(): React.JSX.Element {
       </div>
       <ImportExportButtons onExportClick={onExportClick} onImportClick={onImportClick}/>
       <CustomersFilters/>
-      <CustomPaginationActionsTable rows={customers}/>
-      <ModalNewCustomer isOpen={isModalOpen} onClose={closeModal}/>
+      {!loading && (
+        <CustomTableWithoutSelect
+          rows={onSelectedRowsCustomers(customers, isSelectedCustomers)}
+          openModal={openModal}
+          selectOrganization={onSelectedRowsChange}
+          restoreAllOrganization={restoreAllOrganization}
+        />
+      )}
+      <ModalNewCustomer isOpen={isModalOpen} onClose={closeModal} onRegistrationSuccess={onRegistrationSuccess}/>
     </Stack>
   );
 }

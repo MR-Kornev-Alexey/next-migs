@@ -20,6 +20,7 @@ import {useSelection} from "@/hooks/use-selection";
 import Checkbox from "@mui/material/Checkbox";
 import setKindOfObject from "@/lib/common/kindOfObject";
 import {TablePaginationActions} from "@/components/tables/tablePaginationActions";
+import Button from "@mui/material/Button";
 
 export default function SensorsPaginationAndSelectTable({ rows }) {
   const [page, setPage] = React.useState(0);
@@ -138,6 +139,9 @@ export default function SensorsPaginationAndSelectTable({ rows }) {
           </TableRow>
         </TableFooter>
       </Table>
+      <Box display="flex" justifyContent="flex-end">
+        <Button variant="contained" >Добавить датчик</Button>
+      </Box>
     </TableContainer>
   );
 }

@@ -9,89 +9,35 @@ import TableFooter from '@mui/material/TableFooter';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import IconButton from '@mui/material/IconButton';
-import FirstPageIcon from '@mui/icons-material/FirstPage';
-import KeyboardArrowLeft from '@mui/icons-material/KeyboardArrowLeft';
-import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
-import LastPageIcon from '@mui/icons-material/LastPage';
 import TableHead from "@mui/material/TableHead";
-import {UserGear} from "@phosphor-icons/react/dist/ssr/UserGear";
 import Button from "@mui/material/Button";
 import Stack from '@mui/material/Stack';
+import {TablePaginationActions} from "@/components/tables/tablePaginationActions";
+import Checkbox from "@mui/material/Checkbox";
+import {useSelection} from "@/hooks/use-selection";
+import {CheckSquareOffset, Gear} from "@phosphor-icons/react";
 
-interface TablePaginationActionsProps {
-  count: number;
-  page: number;
-  rowsPerPage: number;
-  onPageChange: (
-    event: React.MouseEvent<HTMLButtonElement>,
-    newPage: number,
-  ) => void;
-}
-
-export function TablePaginationActions(props: TablePaginationActionsProps) {
-  const theme = useTheme();
-  const { count, page, rowsPerPage, onPageChange } = props;
-
-  const handleFirstPageButtonClick = (
-    event: React.MouseEvent<HTMLButtonElement>,
-  ) => {
-    onPageChange(event, 0);
-  };
-
-  const handleBackButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    onPageChange(event, page - 1);
-  };
-
-  const handleNextButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    onPageChange(event, page + 1);
-  };
-
-  const handleLastPageButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    onPageChange(event, Math.max(0, Math.ceil(count / rowsPerPage) - 1));
-  };
-
-  return (
-    <Box sx={{ flexShrink: 0, ml: 2.5 }}>
-      <IconButton
-        onClick={handleFirstPageButtonClick}
-        disabled={page === 0}
-        aria-label="first page"
-      >
-        {theme.direction === 'rtl' ? <LastPageIcon /> : <FirstPageIcon />}
-      </IconButton>
-      <IconButton
-        onClick={handleBackButtonClick}
-        disabled={page === 0}
-        aria-label="previous page"
-      >
-        {theme.direction === 'rtl' ? <KeyboardArrowRight /> : <KeyboardArrowLeft />}
-      </IconButton>
-      <IconButton
-        onClick={handleNextButtonClick}
-        disabled={page >= Math.ceil(count / rowsPerPage) - 1}
-        aria-label="next page"
-      >
-        {theme.direction === 'rtl' ? <KeyboardArrowLeft /> : <KeyboardArrowRight />}
-      </IconButton>
-      <IconButton
-        onClick={handleLastPageButtonClick}
-        disabled={page >= Math.ceil(count / rowsPerPage) - 1}
-        aria-label="last page"
-      >
-        {theme.direction === 'rtl' ? <FirstPageIcon /> : <LastPageIcon />}
-      </IconButton>
-    </Box>
-  );
-}
-
-export default function OrganizationsPaginationActionsTable({rows, openModal}) {
+export default function OrganizationsPaginationActionsTable({rows, openModal, onSelectedRowsChange}) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const rowIds = React.useMemo(() => {
+    return rows.map((customer) => customer.id);
+  }, [rows]);
 
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows =
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
+
+  const { selectAll, deselectAll, selectOne, deselectOne, selected } = useSelection(rowIds);
+
+  React.useEffect(() => {
+    onSelectedRowsChange(selected ? Array.from(selected) : []);
+  }, [selected]);
+
+
+  const selectedSome = (selected?.size ?? 0) > 0 && (selected?.size ?? 0) < rows.length;
+  const selectedAll = rows.length > 0 && selected?.size === rows.length;
+
 
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
@@ -109,16 +55,32 @@ export default function OrganizationsPaginationActionsTable({rows, openModal}) {
 
   return (
     <Stack spacing={3}>
+      <div>
+        rowIds {selectedSome}
+      </div>
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 500 }} aria-label="custom pagination table">
         <TableHead>
           <TableRow>
+            <TableCell padding="checkbox">
+              <Checkbox
+                checked={selectedAll}
+                indeterminate={selectedSome}
+                onChange={(event) => {
+                  if (event.target.checked) {
+                    selectAll();
+                  } else {
+                    deselectAll();
+                  }
+                }}
+              />
+            </TableCell>
             <TableCell>Название</TableCell>
-            <TableCell style={{ width: "20%" }} align="center">
+            <TableCell style={{ width: "10%" }} align="center">
               ИНН</TableCell>
-            <TableCell style={{ width: "20%" }} align="center">
+            <TableCell align="center">
               Адрес</TableCell>
-            <TableCell style={{ width: "10%"  }} align="center">
+            <TableCell style={{ width: "5%"  }} align="center">
               Подробнее
             </TableCell>
           </TableRow>
@@ -127,22 +89,37 @@ export default function OrganizationsPaginationActionsTable({rows, openModal}) {
           {(rowsPerPage > 0
               ? rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               : rows
-          ).map((row) => (
-            <TableRow key={row.id}>
-              <TableCell style={{ width: "30%"  }} >
-                {row.name}
-              </TableCell>
-              <TableCell style={{ width: "20%"  }} align="center">
-                {row.inn}
-              </TableCell>
-              <TableCell style={{ width: "30%"  }} align="center">
-                {row.address}
-              </TableCell>
-              <TableCell style={{ width: "10%"  }} align="center">
-                <UserGear size={24} />
-              </TableCell>
-            </TableRow>
-          ))}
+          ).map((row) => {
+            const isSelected = selected?.has(row.id);
+            return (
+              <TableRow key={row.id} selected={isSelected}>
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    checked={isSelected}
+                    onChange={(event) => {
+                      if (event.target.checked) {
+                        selectOne(row.id);
+                      } else {
+                        deselectOne(row.id);
+                      }
+                    }}
+                  />
+                </TableCell>
+                <TableCell >
+                  {row.name}
+                </TableCell>
+                <TableCell style={{ width: "10%"  }} align="center">
+                  {row.inn}
+                </TableCell>
+                <TableCell align="center">
+                  {row.address}
+                </TableCell>
+                <TableCell style={{ width: "5%"  }} align="center">
+                  <CheckSquareOffset size={24} />
+                </TableCell>
+              </TableRow>
+            )
+          } )}
           {emptyRows > 0 && (
             <TableRow style={{ height: 53 * emptyRows }}>
               <TableCell colSpan={6} />

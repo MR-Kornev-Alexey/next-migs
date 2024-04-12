@@ -3,13 +3,11 @@ import { paths } from '@/paths';// Наборы пунктов навигаци�
 
 const userNavItems = [
   { key: 'overview', title: 'Главная', href: paths.dashboard.overview, icon: 'home' },
-  { key: 'customers', title: 'Пользователи', href: paths.dashboard.customers, icon: 'users' },
   { key: 'account', title: 'Мой профиль', href: paths.dashboard.account, icon: 'user' },
   { key: 'charts', title: 'Графики', href: paths.dashboard.charts, icon: 'chart-bar' },
   { key: 'tables', title: 'Таблицы', href: paths.dashboard.tables, icon: 'table' },
   { key: 'sensors', title: 'Датчики', href: paths.dashboard.sensors, icon: 'plugs-connected' },
-  { key: 'manual', title: 'Руководство пользователя', href: paths.dashboard.manual, icon: 'notebook' },
-  { key: 'settings', title: 'Настройки', href: paths.dashboard.settings, icon: 'gear-six' },
+  { key: 'manual', title: 'Руководство пользователя', href: paths.dashboard.manual, icon: 'notebook' }
 ];
 
 const dispatcherNavItems = [
@@ -19,8 +17,7 @@ const dispatcherNavItems = [
   { key: 'tables', title: 'Таблицы', href: paths.dashboard.tables, icon: 'table' },
   { key: 'sensors', title: 'Датчики', href: paths.dashboard.sensors, icon: 'plugs-connected' },
   { key: 'worklog', title: 'Журнал работы', href: paths.dashboard.worklog, icon: 'log' },
-  { key: 'manual', title: 'Руководство пользователя', href: paths.dashboard.manual, icon: 'notebook' },
-  { key: 'settings', title: 'Настройки', href: paths.dashboard.settings, icon: 'gear-six' },
+  { key: 'manual', title: 'Руководство пользователя', href: paths.dashboard.manual, icon: 'notebook' }
 ];
 
 const  adminNavItems = [

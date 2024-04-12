@@ -53,7 +53,7 @@ export function SignUpFormObject({isFirst,closeModal, onRegistrationObjectSucces
 
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
-      // setIsPending(true);
+      setIsPending(true);
       const result = await objectClient.initSignObject(values);
       console.log(result)
       // Проверить наличие ошибки

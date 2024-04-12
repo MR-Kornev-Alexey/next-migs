@@ -20,6 +20,9 @@ import {objectClient} from "@/lib/objects/object-client";
 import SensorsPaginationActionsTable from "@/components/tables/sensorsPaginationActionsTable";
 import ObjectsPaginationAndSelectTable from "@/components/tables/objectsPaginationAndSelectTable";
 import SensorsPaginationAndSelectTable from "@/components/tables/sensorsPaginationAndSelectTable";
+import ExpandingWindow from "@/lib/expandingWindow/expandingWindow";
+import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
 
 
 
@@ -29,6 +32,12 @@ export default function Page(): React.JSX.Element {
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalObjectOpen, setIsModalObjectOpen] = useState(false);
+
+    const [expanded, setExpanded] = useState(false);
+
+    const toggleExpanded = () => {
+      setExpanded(!expanded);
+    };
 
   const openModal = () => {
     setIsModalOpen(true);
@@ -75,13 +84,23 @@ export default function Page(): React.JSX.Element {
   return (
     <Stack spacing={3}>
       <div>
+        <Typography variant="h5">Выберите объект до просмотра датчиков</Typography>
+        <Button sx={{marginY: 2, width: 200}} variant="contained"
+                onClick={toggleExpanded}>{expanded ? 'Скрыть' : 'Раскрыть'}</Button>
+        {expanded && (
+          <Box>
+            <ObjectsPaginationAndSelectTable rows={objects}/>
+          </Box>
+        )}
+      </div>
+      <div>
         <Typography variant="h4">Датчики</Typography>
       </div>
       <SensorsPaginationAndSelectTable rows={objects}/>
       <div>
-        <Typography variant="h5">Выберите объект до просмотра датчиков</Typography>
+
       </div>
-      <ObjectsPaginationAndSelectTable rows={objects}/>
+
       <ModalNewObject isOpenObject={isModalObjectOpen} onCloseObject={closeObjectModal}
                       onRegistrationSuccess={onRegistrationSuccess} rowsOrganizations={organizations}/>
     </Stack>

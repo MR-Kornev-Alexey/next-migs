@@ -25,10 +25,10 @@ export function MainNav(): React.JSX.Element {
   const [dataUserInComponent, setDataUserInComponent] = React.useState('');
   const userPopover = usePopover<HTMLDivElement>();
   const dispatch: AppDispatch = useDispatch();
-  const dataUser = localStorage.getItem('custom-auth-token');
+  const dataUser = JSON.parse(localStorage.getItem('custom-auth-token'))
   let registrationStatus;
   if (dataUser !== null) {
-    registrationStatus = JSON.parse(dataUser).registration_status;
+    registrationStatus = dataUser.registration_status;
   }
   const [notificationSent, setNotificationSent] = React.useState(false);
   function setNotification() {
@@ -91,7 +91,7 @@ export function MainNav(): React.JSX.Element {
           </Stack>
         </Stack>
       </Box>
-      <UserPopover dataUser={dataUser} anchorEl={userPopover.anchorRef.current} onClose={userPopover.handleClose} open={userPopover.open} />
+      <UserPopover  anchorEl={userPopover.anchorRef.current} onClose={userPopover.handleClose} open={userPopover.open}  />
       <MobileNav
         onClose={() => {
           setOpenNav(false);
