@@ -17,8 +17,8 @@ import Button from "@mui/material/Button";
 import {Trash} from "@phosphor-icons/react";
 
 
-export default function CustomTableWithoutSelect({ rows, openModal, selectOrganization, restoreAllOrganization }) {
-  const [page, setPage] = React.useState(0);
+export default function CustomTableWithoutSelect({ rows, openModal, selectOrganization, restoreAllOrganization, page, setPage }) {
+  // Удалите локальное состояние page
   const [isButtonClear, setIsButtonClear] = React.useState(false);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   // Avoid a layout jump when reaching the last page with empty rows.
@@ -29,7 +29,7 @@ export default function CustomTableWithoutSelect({ rows, openModal, selectOrgani
     event: React.MouseEvent<HTMLButtonElement> | null,
     newPage: number,
   ) => {
-    setPage(newPage);
+    setPage(newPage); // Используйте setPage из пропсов для обновления состояния в родительском компоненте
   };
 
   const handleChangeRowsPerPage = (
@@ -38,8 +38,6 @@ export default function CustomTableWithoutSelect({ rows, openModal, selectOrgani
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
-
-
   return (
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 500 }} aria-label="custom pagination table">

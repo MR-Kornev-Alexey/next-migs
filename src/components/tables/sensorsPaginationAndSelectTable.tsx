@@ -22,7 +22,7 @@ import setKindOfObject from "@/lib/common/kindOfObject";
 import {TablePaginationActions} from "@/components/tables/tablePaginationActions";
 import Button from "@mui/material/Button";
 
-export default function SensorsPaginationAndSelectTable({ rows }) {
+export default function SensorsPaginationAndSelectTable({ rows, openModal }) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const rowIds = React.useMemo(() => {
@@ -140,7 +140,7 @@ export default function SensorsPaginationAndSelectTable({ rows }) {
         </TableFooter>
       </Table>
       <Box display="flex" justifyContent="flex-end">
-        <Button variant="contained" >Добавить датчик</Button>
+        <Button variant="contained" onClick={openModal}>Добавить датчик</Button>
       </Box>
     </TableContainer>
   );
