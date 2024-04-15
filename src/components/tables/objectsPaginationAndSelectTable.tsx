@@ -12,6 +12,11 @@ import {UserGear} from "@phosphor-icons/react/dist/ssr/UserGear";
 import {useSelection} from "@/hooks/use-selection";
 import Checkbox from "@mui/material/Checkbox";
 import setKindOfObject from "@/lib/common/kindOfObject";
+import {TablePaginationActions} from "@/components/tables/tablePaginationActions";
+import sensors from "@/lib/common/sensors"
+
+
+
 
 
 export default function ObjectsPaginationAndSelectTable({ rows }) {

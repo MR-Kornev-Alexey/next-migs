@@ -63,7 +63,9 @@ export function SignUpFormOrganization({isFirst,closeModal, onRegistrationSucces
         return
       } else {
         setIsPending(false);
-        closeModal(false)
+        if(!isFirst) {
+          closeModal(false)
+        }
         onRegistrationSuccess(result);
       }
     },

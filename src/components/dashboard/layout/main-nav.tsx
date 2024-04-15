@@ -19,11 +19,14 @@ import { UserPopover } from './user-popover';
 import {AppDispatch, RootState} from "@/store/store";
 import {useDispatch, useSelector} from "react-redux";
 import {addNotifications} from "@/store/notificationReducer";
+import {Question} from "@phosphor-icons/react";
+import ExpandingWindow from "@/lib/expandingWindow/expandingWindow";
+import {useState} from "react";
 
 export function MainNav(): React.JSX.Element {
   const [openNav, setOpenNav] = React.useState<boolean>(false);
   const [dataUserInComponent, setDataUserInComponent] = React.useState('');
-  const userPopover = usePopover<HTMLDivElement>();
+ const userPopover = usePopover<HTMLDivElement>();
   const dispatch: AppDispatch = useDispatch();
   const dataUser = JSON.parse(localStorage.getItem('custom-auth-token'))
   let registrationStatus;
@@ -41,6 +44,16 @@ export function MainNav(): React.JSX.Element {
   React.useEffect(() => {
     setNotification();
   }, []);
+
+  const [openDialog, setOpenDialog] = useState(false);
+
+  const handleOpenDialog = () => {
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
 
   return (
     <React.Fragment>
@@ -74,8 +87,14 @@ export function MainNav(): React.JSX.Element {
               </IconButton>
             </Tooltip>
           </Stack>
+
           <Stack sx={{ alignItems: 'center' }} direction="row" spacing={2}>
-            <Tooltip title="Notifications">
+            <Tooltip title="Помощь" onClick={() => handleOpenDialog()}>
+                <IconButton>
+                  <Question />
+                </IconButton>
+            </Tooltip>
+            <Tooltip title="Уведомления">
               <Badge badgeContent={4} color="success" variant="dot">
                 <IconButton>
                   <BellIcon />
@@ -92,6 +111,7 @@ export function MainNav(): React.JSX.Element {
         </Stack>
       </Box>
       <UserPopover  anchorEl={userPopover.anchorRef.current} onClose={userPopover.handleClose} open={userPopover.open}  />
+      <ExpandingWindow openDialog={openDialog} handleCloseDialog={handleCloseDialog} />
       <MobileNav
         onClose={() => {
           setOpenNav(false);
