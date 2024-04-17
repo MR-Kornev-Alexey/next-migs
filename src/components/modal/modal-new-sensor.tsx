@@ -8,7 +8,11 @@ import {SignUpFormNewSensor} from "@/components/auth/sign-up-form-new-sensor";
 
 const ModalNewSensor: React.FC = ({ isOpen, onClose, onRegistrationSuccess, objects }) => {
   return (
+<<<<<<< HEAD
     <>
+=======
+    <Box>
+>>>>>>> origin/main
       <Modal
         open={isOpen}
         onClose={onClose}
@@ -32,10 +36,17 @@ const ModalNewSensor: React.FC = ({ isOpen, onClose, onRegistrationSuccess, obje
               <X size={32} onClick={onClose} style={{ cursor: "pointer" }} />
             </Box>
           </Stack>
+<<<<<<< HEAD
           <SignUpFormNewSensor onRegistrationSuccess={onRegistrationSuccess} closeModal={onClose} objects={objects}/>
         </Box>
       </Modal>
     </>
+=======
+          <SignUpFormNewSensor onRegistrationSuccess={onRegistrationSuccess} closeModal={onClose} objects{objects}/>
+        </Box>
+      </Modal>
+    </Box>
+>>>>>>> origin/main
   );
 }
 
