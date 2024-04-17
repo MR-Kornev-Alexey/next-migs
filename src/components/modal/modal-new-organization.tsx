@@ -6,23 +6,7 @@ import {SignUpFormOrganization} from "@/components/auth/sign-up-form-organizatio
 import {X} from "@phosphor-icons/react";
 import Stack from "@mui/material/Stack";
 
-const ModalNewOrganization: React.FC = ({ isOpen, onClose}) => {
-  const [open, setOpen] = useState<boolean>(false);
-  const [isFirst, setIsFirst] = useState(false);
-
-  const handleOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-  const onRegistrationSuccess=(result)=> {
-    if (result)  {
-      alert(result.data)
-    }
-  }
-
+const ModalNewOrganization: React.FC = ({ isOpen, onClose, onRegistrationSuccess}) => {
   return (
     <Box>
       <Modal
@@ -49,7 +33,7 @@ const ModalNewOrganization: React.FC = ({ isOpen, onClose}) => {
               <X size={32} onClick={onClose} style={{ cursor: "pointer" }} />
             </Box>
           </Stack>
-          <SignUpFormOrganization isFirst={isFirst} closeModal={onClose} onRegistrationSuccess={onRegistrationSuccess}/>
+          <SignUpFormOrganization closeModal={onClose} onRegistrationSuccess={onRegistrationSuccess}/>
         </Box>
       </Modal>
     </Box>

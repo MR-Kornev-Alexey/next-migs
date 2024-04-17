@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useTheme } from '@mui/material/styles';
+import {useTheme} from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -33,7 +33,7 @@ interface TablePaginationActionsProps {
 
 export function TablePaginationActions(props: TablePaginationActionsProps) {
   const theme = useTheme();
-  const { count, page, rowsPerPage, onPageChange } = props;
+  const {count, page, rowsPerPage, onPageChange} = props;
 
   const handleFirstPageButtonClick = (
     event: React.MouseEvent<HTMLButtonElement>,
@@ -54,40 +54,40 @@ export function TablePaginationActions(props: TablePaginationActionsProps) {
   };
 
   return (
-    <Box sx={{ flexShrink: 0, ml: 2.5 }}>
+    <Box sx={{flexShrink: 0, ml: 2.5}}>
       <IconButton
         onClick={handleFirstPageButtonClick}
         disabled={page === 0}
         aria-label="first page"
       >
-        {theme.direction === 'rtl' ? <LastPageIcon /> : <FirstPageIcon />}
+        {theme.direction === 'rtl' ? <LastPageIcon/> : <FirstPageIcon/>}
       </IconButton>
       <IconButton
         onClick={handleBackButtonClick}
         disabled={page === 0}
         aria-label="previous page"
       >
-        {theme.direction === 'rtl' ? <KeyboardArrowRight /> : <KeyboardArrowLeft />}
+        {theme.direction === 'rtl' ? <KeyboardArrowRight/> : <KeyboardArrowLeft/>}
       </IconButton>
       <IconButton
         onClick={handleNextButtonClick}
         disabled={page >= Math.ceil(count / rowsPerPage) - 1}
         aria-label="next page"
       >
-        {theme.direction === 'rtl' ? <KeyboardArrowLeft /> : <KeyboardArrowRight />}
+        {theme.direction === 'rtl' ? <KeyboardArrowLeft/> : <KeyboardArrowRight/>}
       </IconButton>
       <IconButton
         onClick={handleLastPageButtonClick}
         disabled={page >= Math.ceil(count / rowsPerPage) - 1}
         aria-label="last page"
       >
-        {theme.direction === 'rtl' ? <FirstPageIcon /> : <LastPageIcon />}
+        {theme.direction === 'rtl' ? <FirstPageIcon/> : <LastPageIcon/>}
       </IconButton>
     </Box>
   );
 }
 
-export default function ObjectsPaginationActionsTable({rows, openModal}) {
+export default function ObjectsPaginationActionsTable({rows}) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
@@ -111,82 +111,79 @@ export default function ObjectsPaginationActionsTable({rows, openModal}) {
 
   return (
     <Stack spacing={3}>
-    <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 500 }} aria-label="custom pagination table">
-        <TableHead>
-          <TableRow>
-            <TableCell>Название</TableCell>
-            <TableCell style={{ width: "20%" }} align="center">
-              Адрес</TableCell>
-            <TableCell style={{ width: "20%" }} align="center">
-              Организация</TableCell>
-            <TableCell style={{ width: "20%" }} align="center">
-              Тип объекта</TableCell>
-            <TableCell style={{ width: "20%"  }} align="center">
-              Датчики</TableCell>
-            <TableCell style={{ width: "10%"  }} align="center">
-              Подробнее</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {(rowsPerPage > 0
-              ? rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              : rows
-          ).map((row) => (
-            <TableRow key={row.id}>
-              <TableCell component="th" scope="row">
-                {row.name}
-              </TableCell>
-              <TableCell style={{ width: "20%"  }} align="center">
-                {row.address}
-              </TableCell>
-              <TableCell style={{ width: "20%"  }} align="center">
-                {row?.organization?.name}
-              </TableCell>
-              <TableCell style={{ width: "20%"  }} align="center">
-                {setKindOfObject(row.objectsType)}
-              </TableCell>
-              <TableCell style={{ width: "20%"  }} align="center">
-                <ListMagnifyingGlass size={24} />
-              </TableCell>
-              <TableCell style={{ width: "10%"  }} align="center">
-                <UserGear size={24} />
-              </TableCell>
+      <TableContainer component={Paper}>
+        <Table sx={{minWidth: 500}} aria-label="custom pagination table">
+          <TableHead>
+            <TableRow>
+              <TableCell>Название</TableCell>
+              <TableCell style={{width: "20%"}} align="center">
+                Адрес</TableCell>
+              <TableCell style={{width: "20%"}} align="center">
+                Организация</TableCell>
+              <TableCell style={{width: "20%"}} align="center">
+                Тип объекта</TableCell>
+              <TableCell style={{width: "20%"}} align="center">
+                Датчики</TableCell>
+              <TableCell style={{width: "10%"}} align="center">
+                Подробнее</TableCell>
             </TableRow>
-          ))}
-          {emptyRows > 0 && (
-            <TableRow style={{ height: 53 * emptyRows }}>
-              <TableCell colSpan={6} />
-            </TableRow>
-          )}
-        </TableBody>
-        <TableFooter>
-          <TableRow>
-            <TablePagination
-              rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
-              colSpan={3}
-              count={rows.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              slotProps={{
-                select: {
-                  inputProps: {
-                    'aria-label': 'rows per page',
+          </TableHead>
+          <TableBody>
+            {(rowsPerPage > 0
+                ? rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                : rows
+            ).map((row) => (
+              <TableRow key={row.id}>
+                <TableCell component="th" scope="row">
+                  {row.name}
+                </TableCell>
+                <TableCell style={{width: "20%"}} align="center">
+                  {row.address}
+                </TableCell>
+                <TableCell style={{width: "20%"}} align="center">
+                  {row?.organization?.name}
+                </TableCell>
+                <TableCell style={{width: "20%"}} align="center">
+                  {setKindOfObject(row.objectsType)}
+                </TableCell>
+                <TableCell style={{width: "20%"}} align="center">
+                  <ListMagnifyingGlass size={24}/>
+                </TableCell>
+                <TableCell style={{width: "10%"}} align="center">
+                  <UserGear size={24}/>
+                </TableCell>
+              </TableRow>
+            ))}
+            {emptyRows > 0 && (
+              <TableRow style={{height: 53 * emptyRows}}>
+                <TableCell colSpan={6}/>
+              </TableRow>
+            )}
+          </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TablePagination
+                rowsPerPageOptions={[5, 10, 25, {label: 'All', value: -1}]}
+                colSpan={3}
+                count={rows.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                slotProps={{
+                  select: {
+                    inputProps: {
+                      'aria-label': 'rows per page',
+                    },
+                    native: true,
                   },
-                  native: true,
-                },
-              }}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-              ActionsComponent={TablePaginationActions}
-            />
-          </TableRow>
-        </TableFooter>
-      </Table>
-    </TableContainer>
-      <Box display="flex" justifyContent="flex-end">
-        <Button variant="contained" onClick={openModal}>Добавить объект</Button>
-      </Box>
+                }}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+                ActionsComponent={TablePaginationActions}
+              />
+            </TableRow>
+          </TableFooter>
+        </Table>
+      </TableContainer>
     </Stack>
   );
 }

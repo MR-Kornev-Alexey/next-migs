@@ -23,7 +23,7 @@ export default function Page(): React.JSX.Element {
   const [organizations, setOrganizations] = useState([]);
   const [objects, setObjects] = useState([]);
   const [typesSensors, setTypesSensors] = useState([]);
-  const [showInit, setShowInit]= useState<boolean>(true);
+  const [showInit, setShowInit] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isSensorKey, setIsNewKey] = useState<string>('');
@@ -36,6 +36,11 @@ export default function Page(): React.JSX.Element {
     setIsNewKey(sensorKey)
     setIsOpenNewTypeSensor(true);
     setIsDisabled(true)
+  };
+  const openModalNewType = () => {
+    setIsNewKey("")
+    setIsOpenNewTypeSensor(true);
+    setIsDisabled(false)
   };
   const closeModalNewModel = () => {
     setIsOpenNewTypeSensor(false);
@@ -70,9 +75,9 @@ export default function Page(): React.JSX.Element {
   useEffect(() => {
     Promise.all([fetchAllOrganizations(), fetchAllObjects(), fetchAllTypeSensors()])
       .then(([organizationsData, objectsData, sensorsTypeData]) => {
-        setOrganizations(organizationsData?.data);
-        setObjects(objectsData?.data);
-        if(sensorsTypeData?.data?.allSensors?.length > 0 ){
+        setOrganizations(organizationsData?.data?.allOrganizations);
+        setObjects(objectsData?.data?.allObjects);
+        if (sensorsTypeData?.data?.allSensors?.length > 0) {
           setTypesSensors(sensorsTypeData?.data?.allSensors)
           setShowInit(false)
         }
@@ -84,17 +89,27 @@ export default function Page(): React.JSX.Element {
       });
   }, []);
 
+  async function isResultSuccess(sensorsTypeData) {
+    setTypesSensors(sensorsTypeData?.data?.allSensors)
+  }
+
   async function fetchAllOrganizations(): Promise<Customer[]> {
     return await organizationClient.getAllOrganization();
   }
+
   async function fetchAllTypeSensors(): Promise<Customer[]> {
     return await sensorsClient.getAllTypeOfSensors();
   }
+
   async function fetchAllObjects(): Promise<Customer[]> {
     return await objectClient.getAllObjects();
   }
+
   async function onRegistrationSuccess(objectsData) {
     setObjects(objectsData?.data.allObjects);
+  }
+  async function onRegistrationOrganizationSuccess(organizationsData) {
+    setOrganizations(organizationsData?.data?.allOrganizations);
   }
   async function onSelectedRowsChange(selected) {
     console.log(selected)
@@ -107,33 +122,41 @@ export default function Page(): React.JSX.Element {
 
   return (
     <Stack spacing={3}>
-      <div>
+      <Box>
         <Typography variant="h4">Настройки</Typography>
-      </div>
+      </Box>
       <Notifications/>
-      <div>
+      <Box>
         <Typography variant="h4">Организации</Typography>
-      </div>
+      </Box>
       <ImportExportButtons onExportClick={onExportClick} onImportClick={onImportClick}/>
-      <OrganizationsPaginationActionsTable rows={organizations} openModal={openModal}
+      <OrganizationsPaginationActionsTable rows={organizations}
                                            onSelectedRowsChange={onSelectedRowsChange}/>
-      <div>
-        <Typography variant="h4">Объекты</Typography>
-      </div>
-      <ImportExportButtons onExportClick={onExportClick} onImportClick={onImportClick}/>
-      <ObjectsPaginationActionsTable rows={onSelectedRowsObjects(objects, isSelectedObjects)}
-                                     openModal={openModalObject}/>
-      <div>
-        <Typography variant="h4">Датчики по типам</Typography>
-      </div>
-      <TypeSensorsWithoutSelect  rows={typesSensors} openModalNewModel={openModalNewModel}/>
       <Box display="flex" justifyContent="space-around">
-        <Button variant="contained" onClick={openModalNewModel}>Добавить новый тип датчика</Button>
-        {showInit&&<Button variant="contained" onClick={initAllTypeSensors}>Первичная инсталляция</Button>
+        <Button variant="contained" onClick={openModal}>Добавить организацию</Button>
+      </Box>
+      <Box>
+        <Typography variant="h4">Объекты</Typography>
+      </Box>
+      {(isSelectedObjects.length > 0 )? <Stack spacing={2}>
+        <ImportExportButtons onExportClick={onExportClick} onImportClick={onImportClick}/>
+        <ObjectsPaginationActionsTable rows={onSelectedRowsObjects(objects, isSelectedObjects)}/>
+        <Box display="flex" justifyContent="space-around">
+          <Button variant="contained" onClick={openModalObject}>Добавить новый объект</Button>
+        </Box></Stack>:<Stack><Typography variant="body1">Выберите организацию для отображения объектов</Typography></Stack>}
+      <Box>
+        <Typography variant="h4">Датчики по типам</Typography>
+      </Box>
+      <ImportExportButtons onExportClick={onExportClick} onImportClick={onImportClick}/>
+      <TypeSensorsWithoutSelect rows={typesSensors} openModalNewModel={openModalNewModel}/>
+      <Box display="flex" justifyContent="space-around">
+        <Button variant="contained" onClick={openModalNewType}>Добавить новый тип датчика</Button>
+        {showInit && <Button variant="contained" onClick={initAllTypeSensors}>Первичная инсталляция</Button>
         }
       </Box>
-      <ModalNewModelSensor isOpen={isOpenNewTypeSensor} onClose={closeModalNewModel} isSensorKey={isSensorKey} isDisabled={isDisabled}/>
-      <ModalNewOrganization isOpen={isModalOpen} onClose={closeModal}/>
+      <ModalNewModelSensor isOpen={isOpenNewTypeSensor} onClose={closeModalNewModel} isSensorKey={isSensorKey}
+                           isResultSuccess={isResultSuccess} isDisabled={isDisabled}/>
+      <ModalNewOrganization isOpen={isModalOpen} onClose={closeModal} onRegistrationSuccess={onRegistrationOrganizationSuccess}/>
       <ModalNewObject isOpenObject={isModalObjectOpen} onCloseObject={closeObjectModal}
                       onRegistrationSuccess={onRegistrationSuccess} rowsOrganizations={organizations}/>
     </Stack>

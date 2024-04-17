@@ -1,22 +1,11 @@
-import React, {useState} from 'react';
-import {Button, Modal, Typography} from '@mui/material';
+import React from 'react';
+import {Modal} from '@mui/material';
 import Box from "@mui/material/Box";
-import {SignUpFormNewCustomer} from "@/components/auth/sign-up-form-new-customer";
-import {SignUpFormOrganization} from "@/components/auth/sign-up-form-organization";
 import {X} from "@phosphor-icons/react";
 import Stack from "@mui/material/Stack";
 import {SignUpFormNewTypeSensor} from "@/components/auth/sign-up-form-new-type-sensor";
 
-const ModalNewModelSensor: React.FC = ({ isOpen, onClose, isSensorKey }) => {
-  const [open, setOpen] = useState<boolean>(false);
-  const [isFirst, setIsFirst] = useState(false);
-
-  const onRegistrationSuccess=(result)=> {
-    if (result)  {
-      alert(result.data)
-    }
-  }
-
+const ModalNewModelSensor: React.FC = ({ isOpen, onClose, isSensorKey, isResultSuccess, isDisabled}) => {
   return (
     <Box>
       <Modal
@@ -43,7 +32,7 @@ const ModalNewModelSensor: React.FC = ({ isOpen, onClose, isSensorKey }) => {
               <X size={32} onClick={onClose} style={{ cursor: "pointer" }} />
             </Box>
           </Stack>
-          <SignUpFormNewTypeSensor  closeModal={onClose} isSensorKey={isSensorKey} onRegistrationSuccess={onRegistrationSuccess} isDisabled/>
+          <SignUpFormNewTypeSensor  closeModal={onClose} isSensorKey={isSensorKey} isResultSuccess={isResultSuccess} isDisabled={isDisabled}/>
         </Box>
       </Modal>
     </Box>

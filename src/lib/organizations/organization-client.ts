@@ -31,7 +31,6 @@ export class OrganizationClient {
     }
   }
   async getAllOrganization() {
-    let getEmail = await getHeaders()
     try {
       return await axios.get(
         'http://localhost:5000/organization/get_all_organizations',
@@ -43,16 +42,18 @@ export class OrganizationClient {
     }
   }
 
-  async initSignOrganization(formDataOrganization: FormDataOrganization) {
+  async createNewOrganization(formDataOrganization: FormDataOrganization) {
     console.log(formDataOrganization)
+    let getEmail = await getHeaders()
     try{
-      const headers = {
-        'Content-Type': 'application/json'
-      };
+      const sentData = {
+        email:getEmail,
+        organizationsData: formDataOrganization
+      }
       return await axios.post(
-        'http://localhost:5000/organization/init_organization',
-        JSON.stringify(formDataOrganization), // Преобразование объекта в JSON-строку
-        {headers} // Передача заголовков в конфигурацию запроса
+        'http://localhost:5000/organization/create_new_organization',
+         JSON.stringify(formDataOrganization), // Преобразование объекта в JSON-строку
+        { headers: await getHeaders() }// Передача заголовков в конфигурацию запроса
       );
     } catch (error) {
       console.error('Произошла ошибка:', error.message);

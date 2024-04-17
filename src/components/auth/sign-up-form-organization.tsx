@@ -12,37 +12,41 @@ import {Controller, useForm} from 'react-hook-form';
 import {organizationClient} from "@/lib/organizations/organization-client";
 import {z as zod} from 'zod';
 import Box from "@mui/material/Box";
+import Alert from "@mui/material/Alert";
 
-const numberRegex = /^(?:\d{10}|\d{12})$/;
-const phoneRegex = /^\+7\d{10}$/;
 
-const schema = zod.object({
-    name: zod.string().min(1, {message: 'Ввод имени обязателен'}),
-    inn: zod.string()
-      .min(10, {message: 'Ввод должен содержать не менее 10 цифр'})
-      .regex(numberRegex, {message: 'Ввод должен содержать ровно 10 или 12 цифр'}),
-    address: zod.string().min(1, {message: 'Ввод адреса организации обязателен'}),
-    directorName: zod.string().min(1, {message: 'Ввод руководителя организации обязателен'}),
-    organizationPhone: zod.string()
-      .min(12, {message: 'Ввод должен содержать  12 символов'})
-      .regex(phoneRegex, {message: 'Ввод должен содержать  +7 и 10 цифр'}),
-    organizationEmail: zod.string().min(1, {message: 'Ввод email обязателен'}).email()
-  }
-);
 
-type Values = zod.infer<typeof schema>;
-const defaultValues = {
-  name: 'ООО «НИИ МИГС»',
-  inn: '7716852062',
-  address: '129344 г. Москва, Енисейская ул., д.1, стр. 1, этаж 2, пом.255',
-  directorName: 'Курыпов Алексей Александрович',
-  organizationPhone: '+74954192807',
-  organizationEmail: 'info@nii-migs.ru'
-} satisfies Values;
-
-export function SignUpFormOrganization({isFirst,closeModal, onRegistrationSuccess, }): React.JSX.Element {
+export function SignUpFormOrganization({closeModal, onRegistrationSuccess, }): React.JSX.Element {
   const [isPending, setIsPending] = React.useState<boolean>(false);
   const [isMessage, setIsMessage] = React.useState<string>('');
+  const [alertColor, setAlertColor] = React.useState<string>('');
+  const numberRegex = /^(?:\d{10}|\d{12})$/;
+  const phoneRegex = /^\+7\d{10}$/;
+
+  const schema = zod.object({
+      name: zod.string().min(1, {message: 'Ввод имени обязателен'}),
+      inn: zod.string()
+        .min(10, {message: 'Ввод должен содержать не менее 10 цифр'})
+        .regex(numberRegex, {message: 'Ввод должен содержать ровно 10 или 12 цифр'}),
+      address: zod.string().min(1, {message: 'Ввод адреса организации обязателен'}),
+      directorName: zod.string().min(1, {message: 'Ввод руководителя организации обязателен'}),
+      organizationPhone: zod.string()
+        .min(12, {message: 'Ввод должен содержать  12 символов'})
+        .regex(phoneRegex, {message: 'Ввод должен содержать  +7 и 10 цифр'}),
+      organizationEmail: zod.string().min(1, {message: 'Ввод email обязателен'}).email()
+    }
+  );
+
+  type Values = zod.infer<typeof schema>;
+  const defaultValues = {
+    name: 'ООО «НИИ МИГС»',
+    inn: '7716852062',
+    address: '129344 г. Москва, Енисейская ул., д.1, стр. 1, этаж 2, пом.255',
+    directorName: 'Иванов Алексей Иванович',
+    organizationPhone: '+74954192807',
+    organizationEmail: 'info@nii-migs.ru'
+  } satisfies Values;
+
   const {
     control,
     handleSubmit,
@@ -53,31 +57,36 @@ export function SignUpFormOrganization({isFirst,closeModal, onRegistrationSucces
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
       setIsPending(true);
-      const result = await organizationClient.initSignOrganization(values);
-      console.log(result)
+      const result = await organizationClient.createNewOrganization(values);
+      if(result?.data?.statusCode === 200){
+        setIsPending(false);
+        setAlertColor( "success");
+        setIsMessage(result?.data?.message)
+        setTimeout(() => {
+          // обновленные данные в таблицу
+          onRegistrationSuccess(result)
+          closeModal(false)
+        }, 2000);
+      }
+      if(result?.data?.statusCode === 400){
+        // console.log("result --- ", result?.data);
+        setIsPending(false);
+        setIsMessage(result?.data?.message)
+        setAlertColor( "error");
+      }
       // Проверить наличие ошибки
       if (result?.error) {
-        setError('root', { type: 'server', message: result?.error });
         setIsPending(false);
-        setIsMessage('Ошибка ввода, повторите снова');
+        setIsMessage(result?.data?.message)
+        setAlertColor( "error");
         return
-      } else {
-        setIsPending(false);
-        if(!isFirst) {
-          closeModal(false)
-        }
-        onRegistrationSuccess(result);
       }
     },
     [setError]
   );
   return (
     <Stack spacing={3}>
-      <Stack spacing={1}>
-        {isFirst?<Typography variant="h4">Первичная регистрация основной организации</Typography>:
           <Typography variant="h4">Добавление новой организации</Typography>
-        }
-      </Stack>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
           <Controller
@@ -161,9 +170,9 @@ export function SignUpFormOrganization({isFirst,closeModal, onRegistrationSucces
             </Box>
             }
           </Button>
+          {isMessage&&<Alert color={alertColor}>{isMessage}</Alert>}
         </Stack>
       </form>
-      {isMessage}
     </Stack>
   );
 }

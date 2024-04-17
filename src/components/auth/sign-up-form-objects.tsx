@@ -9,7 +9,6 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import {Controller, useForm} from 'react-hook-form';
-import {organizationClient} from "@/lib/organizations/organization-client";
 import {z as zod} from 'zod';
 import Box from "@mui/material/Box";
 import {ObjectFormInput} from "@/types/objectFormInput";
@@ -17,33 +16,39 @@ import {objectClient} from "@/lib/objects/object-client";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import Alert from "@mui/material/Alert";
-import { objectsTypeOptions, objectsMaterialsOptions } from "@/lib/common/optionsObjects"
+import {objectsTypeOptions, objectsMaterialsOptions} from "@/lib/common/optionsObjects"
 
-const schema = zod.object({
-    name: zod.string().min(1, {message: 'Ввод имени обязателен'}),
-    geo: zod.string(),
-    address: zod.string().min(1, {message: 'Ввод адреса организации обязателен'}),
-    notation: zod.string(),
-    organization_id: zod.string().min(1, {message: 'Ввод адреса организации обязателен'}),
-    objectsType:  zod.string().min(1, {message: 'Ввод адреса организации обязателен'}),
-    objectsMaterial: zod.string().min(1, {message: 'Ввод адреса организации обязателен'})
-  }
-);
 
-type Values = zod.infer<typeof schema>;
-const defaultValues: ObjectFormInput = {
-  organization_id: "",
-  objectsType: "bridge",
-  objectsMaterial: "ferroconcrete",
-  geo: "",
-  name: "Октябрьский мост",
-  address: "Ярославль",
-  notation: ""
-} satisfies Values;
-
-export function SignUpFormObject({isFirst,closeModal, onRegistrationObjectSuccess, rowsOrganizations}): React.JSX.Element {
+export function SignUpFormObject({
+                                   closeModal,
+                                   onRegistrationObjectSuccess,
+                                   rowsOrganizations
+                                 }): React.JSX.Element {
   const [isPending, setIsPending] = React.useState<boolean>(false);
   const [isMessage, setIsMessage] = React.useState<string>('');
+  const [alertColor, setAlertColor] = React.useState<string>('');
+  const schema = zod.object({
+      name: zod.string().min(1, {message: 'Ввод имени обязателен'}),
+      geo: zod.string(),
+      address: zod.string().min(1, {message: 'Ввод адреса  обязателен'}),
+      notation: zod.string(),
+      organization_id: zod.string().min(1, {message: 'Ввод организации обязателен'}),
+      objectsType: zod.string().min(1, {message: 'Ввод типа объекта обязателен'}),
+      objectsMaterial: zod.string().min(1, {message: 'Ввод материала обязателен'})
+    }
+  );
+
+  type Values = zod.infer<typeof schema>;
+  const defaultValues: ObjectFormInput = {
+    organization_id: "",
+    objectsType: "bridge",
+    objectsMaterial: "ferroconcrete",
+    geo: "",
+    name: "мост",
+    address: "Ярославль",
+    notation: ""
+  } satisfies Values;
+
   const {
     control,
     handleSubmit,
@@ -55,17 +60,26 @@ export function SignUpFormObject({isFirst,closeModal, onRegistrationObjectSucces
     async (values: Values): Promise<void> => {
       setIsPending(true);
       const result = await objectClient.initSignObject(values);
-      console.log(result)
-      // Проверить наличие ошибки
+      if (result?.data?.statusCode === 200) {
+        setIsPending(false);
+        setAlertColor("success");
+        setIsMessage(result?.data?.message)
+        setTimeout(() => {
+          // обновленные данные в таблицу
+          onRegistrationObjectSuccess(result);
+          closeModal(false)
+        }, 2000);
+      }
+      if (result?.data?.statusCode === 400) {
+        setIsPending(false);
+        setIsMessage(result?.data?.message)
+        setAlertColor("error");
+      }
       if (result?.error) {
-        setError('root', { type: 'server', message: result?.error });
         setIsPending(false);
-        setIsMessage('Ошибка ввода, повторите снова');
+        setIsMessage(result?.data?.message)
+        setAlertColor("error");
         return
-      } else {
-        setIsPending(false);
-        closeModal(false)
-        onRegistrationObjectSuccess(result);
       }
     },
     [setError]
@@ -79,7 +93,7 @@ export function SignUpFormObject({isFirst,closeModal, onRegistrationObjectSucces
   return (
     <Stack spacing={3}>
       <Stack spacing={1}>
-          <Typography variant="h4">Добавление нового объекта</Typography>
+        <Typography variant="h4">Добавление нового объекта</Typography>
       </Stack>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
@@ -120,7 +134,7 @@ export function SignUpFormObject({isFirst,closeModal, onRegistrationObjectSucces
             control={control}
             name="objectsType"
             defaultValue="bridge" // Установите значение по умолчанию на пустую строку
-            render={({ field }) => (
+            render={({field}) => (
               <FormControl error={Boolean(errors.objectsType)}>
                 <InputLabel id="select-label">Выберите тип здания</InputLabel>
                 <Select
@@ -145,7 +159,7 @@ export function SignUpFormObject({isFirst,closeModal, onRegistrationObjectSucces
             control={control}
             name="objectsMaterial"
             defaultValue="mixed" // Установите значение по умолчанию на пустую строку
-            render={({ field }) => (
+            render={({field}) => (
               <FormControl error={Boolean(errors.objectsMaterial)}>
                 <InputLabel id="select-label">Выберите материал</InputLabel>
                 <Select
@@ -156,7 +170,7 @@ export function SignUpFormObject({isFirst,closeModal, onRegistrationObjectSucces
                   <MenuItem disabled value="mixed">
                     Выберите материал
                   </MenuItem>
-                    {objectsMaterialsOptions.map((option) => (
+                  {objectsMaterialsOptions.map((option) => (
                     <MenuItem key={option.value} value={option.value}>
                       {option.label}
                     </MenuItem>
@@ -170,7 +184,7 @@ export function SignUpFormObject({isFirst,closeModal, onRegistrationObjectSucces
             control={control}
             name="organization_id"
             defaultValue="-1"
-            render={({ field }) => (
+            render={({field}) => (
               <FormControl error={Boolean(errors.organization_id)}>
                 <InputLabel id="select-label">Выберите организацию</InputLabel>
                 <Select
@@ -219,7 +233,7 @@ export function SignUpFormObject({isFirst,closeModal, onRegistrationObjectSucces
           </Button>
         </Stack>
       </form>
-      {isMessage&&<Alert color="error">{isMessage}</Alert>}
+      {isMessage && <Alert color={alertColor}>{isMessage}</Alert>}
     </Stack>
   );
 }

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useTheme } from '@mui/material/styles';
+import {useTheme} from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -17,7 +17,7 @@ import Checkbox from "@mui/material/Checkbox";
 import {useSelection} from "@/hooks/use-selection";
 import {CheckSquareOffset, Gear} from "@phosphor-icons/react";
 
-export default function OrganizationsPaginationActionsTable({rows, openModal, onSelectedRowsChange}) {
+export default function OrganizationsPaginationActionsTable({rows, onSelectedRowsChange}) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const rowIds = React.useMemo(() => {
@@ -28,7 +28,7 @@ export default function OrganizationsPaginationActionsTable({rows, openModal, on
   const emptyRows =
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
-  const { selectAll, deselectAll, selectOne, deselectOne, selected } = useSelection(rowIds);
+  const {selectAll, deselectAll, selectOne, deselectOne, selected} = useSelection(rowIds);
 
   React.useEffect(() => {
     onSelectedRowsChange(selected ? Array.from(selected) : []);
@@ -54,12 +54,8 @@ export default function OrganizationsPaginationActionsTable({rows, openModal, on
   };
 
   return (
-    <Stack spacing={3}>
-      <div>
-        rowIds {selectedSome}
-      </div>
     <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 500 }} aria-label="custom pagination table">
+      <Table sx={{minWidth: 500}} aria-label="custom pagination table">
         <TableHead>
           <TableRow>
             <TableCell padding="checkbox">
@@ -76,11 +72,11 @@ export default function OrganizationsPaginationActionsTable({rows, openModal, on
               />
             </TableCell>
             <TableCell>Название</TableCell>
-            <TableCell style={{ width: "10%" }} align="center">
+            <TableCell style={{width: "10%"}} align="center">
               ИНН</TableCell>
             <TableCell align="center">
               Адрес</TableCell>
-            <TableCell style={{ width: "5%"  }} align="center">
+            <TableCell style={{width: "5%"}} align="center">
               Подробнее
             </TableCell>
           </TableRow>
@@ -105,31 +101,31 @@ export default function OrganizationsPaginationActionsTable({rows, openModal, on
                     }}
                   />
                 </TableCell>
-                <TableCell >
+                <TableCell>
                   {row.name}
                 </TableCell>
-                <TableCell style={{ width: "10%"  }} align="center">
+                <TableCell style={{width: "10%"}} align="center">
                   {row.inn}
                 </TableCell>
                 <TableCell align="center">
                   {row.address}
                 </TableCell>
-                <TableCell style={{ width: "5%"  }} align="center">
-                  <CheckSquareOffset size={24} />
+                <TableCell style={{width: "5%"}} align="center">
+                  <CheckSquareOffset size={24}/>
                 </TableCell>
               </TableRow>
             )
-          } )}
+          })}
           {emptyRows > 0 && (
-            <TableRow style={{ height: 53 * emptyRows }}>
-              <TableCell colSpan={6} />
+            <TableRow style={{height: 53 * emptyRows}}>
+              <TableCell colSpan={6}/>
             </TableRow>
           )}
         </TableBody>
         <TableFooter>
           <TableRow>
             <TablePagination
-              rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
+              rowsPerPageOptions={[5, 10, 25, {label: 'All', value: -1}]}
               colSpan={3}
               count={rows.length}
               rowsPerPage={rowsPerPage}
@@ -150,9 +146,5 @@ export default function OrganizationsPaginationActionsTable({rows, openModal, on
         </TableFooter>
       </Table>
     </TableContainer>
-      <Box display="flex" justifyContent="flex-end">
-        <Button variant="contained" onClick={openModal}>Добавить организацию</Button>
-      </Box>
-    </Stack>
   );
 }

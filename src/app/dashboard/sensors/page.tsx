@@ -13,12 +13,14 @@ import Box from "@mui/material/Box";
 import ModalNewSensor from "@/components/modal/modal-new-sensor";
 import Alert from "@mui/material/Alert";
 import {SignUpFormNewSensor} from "@/components/auth/sign-up-form-new-sensor";
+import {sensorsClient} from "@/lib/sensors/sensors-client";
 
 
 
 export default function Page(): React.JSX.Element {
   const [sensors, setSensors] = useState([]);
   const [objects, setObjects] = useState([]);
+  const [typesSensors, setTypesSensors] = useState([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMessage, setIsMessage] = React.useState<string>('');
@@ -42,12 +44,13 @@ export default function Page(): React.JSX.Element {
 
 
   useEffect(() => {
-    Promise.all([fetchAllOrganizations(), fetchAllObjects()])
-      .then(([organizationsData, objectsData]) => {
+    Promise.all([fetchAllSensors(), fetchAllObjects(), fetchAllTypeSensors()])
+      .then(([sensorsData, objectsData,sensorsTypeData]) => {
         setLoading(true);
-        if(objectsData?.data.length > 0) {
-          setSensors(organizationsData?.data);
-          setObjects(objectsData?.data);
+        if(objectsData?.data?.allObjects.length > 0) {
+          setSensors(sensorsData?.data?.allSensors);
+          setObjects(objectsData?.data?.allObjects);
+          setTypesSensors(sensorsTypeData?.data?.allSensors)
         }
         else {
           setIsMessage('Ошибка при загрузке данных')
@@ -58,17 +61,19 @@ export default function Page(): React.JSX.Element {
       });
   }, []);
 
-  async function fetchAllOrganizations(): Promise<Customer[]> {
-    return await organizationClient.getAllOrganization();
+  async function fetchAllSensors(): Promise<Customer[]> {
+    return await objectClient.getAllObjects();
   }
 
-
+  async function fetchAllTypeSensors(): Promise<Customer[]> {
+    return await sensorsClient.getAllTypeOfSensors();
+  }
   async function fetchAllObjects(): Promise<Customer[]> {
     return await objectClient.getAllObjects();
   }
+
   async function onRegistrationSuccess(objectsData) {
     console.log(objectsData.data.allObjects)
-    setObjects(objectsData?.data.allObjects);
   }
 
 
@@ -165,7 +170,7 @@ export default function Page(): React.JSX.Element {
           {isMessage&&<Alert color={alertColor}>{isMessage}</Alert>}
         </Stack>:
         <Stack>
-            <Typography variant="h5">Выберите объект до просмотра датчиков</Typography>
+            <Typography variant="body1">Выберите объект для просмотра датчиков</Typography>
             <Button sx={{marginY: 2, width: 200}} variant="contained"
                     onClick={toggleExpanded}>{expanded ? 'Скрыть' : 'Раскрыть'}</Button>
             {expanded && (
@@ -175,9 +180,12 @@ export default function Page(): React.JSX.Element {
             )}
             <Typography variant="h4">Датчики</Typography>
             <SensorsPaginationAndSelectTable openModal={openModal} rows={objects}/>
+          <Box display="flex" justifyContent="space-around" sx={{marginTop: 3}}>
+            <Button variant="contained" onClick={openModal}>Добавить датчик на объект</Button>
+          </Box>
         </Stack>}
 
-      <ModalNewSensor isOpen={isModalOpen} onClose={closeModal} onRegistrationSuccess={onRegistrationSuccess} isAllObjects = {objects}/>
+      <ModalNewSensor isOpen={isModalOpen} onClose={closeModal} onRegistrationSuccess={onRegistrationSuccess} typesSensors={typesSensors} objects = {objects}/>
     </Stack>
   );
 }

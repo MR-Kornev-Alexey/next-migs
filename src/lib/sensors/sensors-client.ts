@@ -1,8 +1,8 @@
 'use client';
 import axios from 'axios';
-import {FormAdditionalData} from "@/types/formAdditionalData";
 
 import {SensorData} from "@/types/sensorData"
+
 async function getHeaders() {
   const dataUser = localStorage.getItem('custom-auth-token');
   let token = '', email = '';
@@ -71,19 +71,18 @@ export class SensorsClient {
       return { error: error.message };
     }
   }
-  async createNewSensor (sensorData: SensorData) {
+  async setNewSensorToObject (sensorData: SensorData) {
     let getEmail = await getHeaders()
     try {
       const sendData = {
         email: getEmail.email,
         sensorsData: sensorData
       };
-      const receivedData = await axios.post(
-        'http://localhost:5000/sensors/create_new_sensor',
+      return await axios.post(
+        'http://localhost:5000/sensors/set_new_sensor_to_object',
         JSON.stringify(sendData),
-        { headers: await getHeaders() }
-      );
-      return receivedData.data
+        {headers: await getHeaders()}
+      )
     } catch (error) {
       console.error('Произошла ошибка:', error.message);
       return { error: error.message };

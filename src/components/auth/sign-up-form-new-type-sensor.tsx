@@ -13,14 +13,16 @@ import {organizationClient} from "@/lib/organizations/organization-client";
 import {z as zod} from 'zod';
 import Box from "@mui/material/Box";
 import {sensorsClient} from "@/lib/sensors/sensors-client";
+import Alert from "@mui/material/Alert";
 
 
 
 
 
-export function SignUpFormNewTypeSensor({closeModal, onRegistrationSuccess, isSensorKey, isDisabled}): React.JSX.Element {
+export function SignUpFormNewTypeSensor({closeModal, isResultSuccess, isSensorKey, isDisabled}): React.JSX.Element {
   const [isPending, setIsPending] = React.useState<boolean>(false);
   const [isMessage, setIsMessage] = React.useState<string>('');
+  const [alertColor, setAlertColor] = React.useState<string>('');
 
   const latinRegex = /^[a-zA-Z]+$/;
   type Values = zod.infer<typeof schema>;
@@ -29,13 +31,13 @@ export function SignUpFormNewTypeSensor({closeModal, onRegistrationSuccess, isSe
      defaultValues = {
       sensor_key: isSensorKey.sensorKey,
       sensor_type: isSensorKey.sensorType,
-      model: 'МИГС-001-2024'
+      model: 'МИГС-001'
     } satisfies Values;
   } else {
      defaultValues = {
       sensor_key: '',
       sensor_type: '',
-      model: 'МИГС-001-2024'
+      model: 'МИГС-002'
     } satisfies Values;
   }
   const schema = zod.object({
@@ -55,17 +57,30 @@ export function SignUpFormNewTypeSensor({closeModal, onRegistrationSuccess, isSe
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
       setIsPending(true);
+      setIsMessage("")
       const result = await sensorsClient.createNewTypeSensor(values);
-      console.log(result)
+      if(result?.data?.statusCode === 200){
+        setIsPending(false);
+        setAlertColor( "success");
+        setIsMessage(result?.data?.message)
+        setTimeout(() => {
+          // обновленные данные в таблицу
+          isResultSuccess(result)
+          closeModal(false)
+        }, 2000);
+      }
+      if(result?.data?.statusCode === 400){
+        // console.log("result --- ", result?.data);
+        setIsPending(false);
+        setIsMessage(result?.data?.message)
+        setAlertColor( "error");
+      }
       // Проверить наличие ошибки
       if (result?.error) {
-        setError('root', {type: 'server', message: result?.error});
         setIsPending(false);
-        setIsMessage('Ошибка ввода, повторите снова');
+        setIsMessage(result?.data?.message)
+        setAlertColor( "error");
         return
-      } else {
-        setIsPending(false);
-        // onRegistrationSuccess(result);
       }
     },
     [setError]
@@ -125,9 +140,9 @@ export function SignUpFormNewTypeSensor({closeModal, onRegistrationSuccess, isSe
             </Box>
             }
           </Button>
+          {isMessage&&<Alert color={alertColor}>{isMessage}</Alert>}
         </Stack>
       </form>
-      {isMessage}
     </Stack>
   );
 }

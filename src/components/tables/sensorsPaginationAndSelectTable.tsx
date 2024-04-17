@@ -139,9 +139,6 @@ export default function SensorsPaginationAndSelectTable({ rows, openModal }) {
           </TableRow>
         </TableFooter>
       </Table>
-      <Box display="flex" justifyContent="flex-end">
-        <Button variant="contained" onClick={openModal}>Добавить датчик</Button>
-      </Box>
     </TableContainer>
   );
 }
