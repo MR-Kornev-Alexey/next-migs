@@ -12,17 +12,35 @@ import OrganizationsPaginationActionsTable from "@/components/tables/organizatio
 import ModalNewObject from "@/components/modal/modal-new-object";
 import {objectClient} from "@/lib/objects/object-client";
 import ImportExportButtons from "@/lib/common/importExportButtons";
-
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import ModalNewTypeSensor from "@/components/modal/modal-new-type-sensor";
+import {sensorsClient} from "@/lib/sensors/sensors-client";
+import jsonData from "@/lib/json/sensors.json"
+import TypeSensorsWithoutSelect from "@/components/tables/typeSensorsWithoutSelect";
+import ModalNewModelSensor from "@/components/modal/modal-new-model-sensor";
 
 export default function Page(): React.JSX.Element {
   const [organizations, setOrganizations] = useState([]);
   const [objects, setObjects] = useState([]);
+  const [typesSensors, setTypesSensors] = useState([]);
+  const [showInit, setShowInit]= useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isSensorKey, setIsNewKey] = useState<string>('');
+  const [isOpenNewTypeSensor, setIsOpenNewTypeSensor] = useState<boolean>(false);
+  const [isDisabled, setIsDisabled] = useState<boolean>(false);
   const [isModalObjectOpen, setIsModalObjectOpen] = useState<boolean>(false);
   const [isSelectedObjects, setIsSelectedObjects] = useState([]);
 
-
+  const openModalNewModel = (sensorKey) => {
+    setIsNewKey(sensorKey)
+    setIsOpenNewTypeSensor(true);
+    setIsDisabled(true)
+  };
+  const closeModalNewModel = () => {
+    setIsOpenNewTypeSensor(false);
+  };
   const openModal = () => {
     setIsModalOpen(true);
   };
@@ -44,11 +62,21 @@ export default function Page(): React.JSX.Element {
     setIsModalObjectOpen(false);
   };
 
+  const initAllTypeSensors = async () => {
+
+    const allSensors = await sensorsClient.initNewAllTypeOfSensors(jsonData);
+    console.log(allSensors)
+  };
+
   useEffect(() => {
-    Promise.all([fetchAllOrganizations(), fetchAllObjects()])
-      .then(([organizationsData, objectsData]) => {
+    Promise.all([fetchAllOrganizations(), fetchAllObjects(), fetchAllTypeSensors()])
+      .then(([organizationsData, objectsData, sensorsTypeData]) => {
         setOrganizations(organizationsData?.data);
         setObjects(objectsData?.data);
+        if(sensorsTypeData?.data?.allSensors?.length > 0 ){
+          setTypesSensors(sensorsTypeData?.data?.allSensors)
+          setShowInit(false)
+        }
         setLoading(false);
       })
       .catch((error) => {
@@ -60,7 +88,9 @@ export default function Page(): React.JSX.Element {
   async function fetchAllOrganizations(): Promise<Customer[]> {
     return await organizationClient.getAllOrganization();
   }
-
+  async function fetchAllTypeSensors(): Promise<Customer[]> {
+    return await sensorsClient.getAllTypeOfSensors();
+  }
   async function fetchAllObjects(): Promise<Customer[]> {
     return await objectClient.getAllObjects();
   }
@@ -85,15 +115,28 @@ export default function Page(): React.JSX.Element {
       <div>
         <Typography variant="h4">Организации</Typography>
       </div>
-      <ImportExportButtons  onExportClick={onExportClick} onImportClick={onImportClick}/>
-      <OrganizationsPaginationActionsTable rows={organizations}   openModal={openModal} onSelectedRowsChange={onSelectedRowsChange}/>
+      <ImportExportButtons onExportClick={onExportClick} onImportClick={onImportClick}/>
+      <OrganizationsPaginationActionsTable rows={organizations} openModal={openModal}
+                                           onSelectedRowsChange={onSelectedRowsChange}/>
       <div>
         <Typography variant="h4">Объекты</Typography>
       </div>
-      <ImportExportButtons  onExportClick={onExportClick} onImportClick={onImportClick}/>
-      <ObjectsPaginationActionsTable rows={onSelectedRowsObjects(objects, isSelectedObjects)}   openModal={openModalObject} />
+      <ImportExportButtons onExportClick={onExportClick} onImportClick={onImportClick}/>
+      <ObjectsPaginationActionsTable rows={onSelectedRowsObjects(objects, isSelectedObjects)}
+                                     openModal={openModalObject}/>
+      <div>
+        <Typography variant="h4">Датчики по типам</Typography>
+      </div>
+      <TypeSensorsWithoutSelect  rows={typesSensors} openModalNewModel={openModalNewModel}/>
+      <Box display="flex" justifyContent="space-around">
+        <Button variant="contained" onClick={openModalNewModel}>Добавить новый тип датчика</Button>
+        {showInit&&<Button variant="contained" onClick={initAllTypeSensors}>Первичная инсталляция</Button>
+        }
+      </Box>
+      <ModalNewModelSensor isOpen={isOpenNewTypeSensor} onClose={closeModalNewModel} isSensorKey={isSensorKey} isDisabled={isDisabled}/>
       <ModalNewOrganization isOpen={isModalOpen} onClose={closeModal}/>
-      <ModalNewObject isOpenObject={isModalObjectOpen} onCloseObject={closeObjectModal} onRegistrationSuccess={onRegistrationSuccess} rowsOrganizations={organizations}  />
+      <ModalNewObject isOpenObject={isModalObjectOpen} onCloseObject={closeObjectModal}
+                      onRegistrationSuccess={onRegistrationSuccess} rowsOrganizations={organizations}/>
     </Stack>
   );
 }

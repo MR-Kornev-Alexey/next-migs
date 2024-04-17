@@ -9,12 +9,12 @@ import Stack from '@mui/material/Stack';
 import {Controller, useForm} from 'react-hook-form';
 import {z as zod} from 'zod';
 import Box from "@mui/material/Box";
-import {useEffect} from "react";
-import {fetchAllOrganizations} from "@/components/dashboard/organizations/fetchAllOrganizations";
-import {customersClient} from "@/lib/customers/customers-client";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import Alert from "@mui/material/Alert";
+import sensors from "@/lib/common/sensors"
+import {sensorsClient} from "@/lib/sensors/sensors-client";
+
 
 const schema = zod.object({
     sensor_type: zod.string()
@@ -22,15 +22,27 @@ const schema = zod.object({
     model: zod.string().min(1, {message: 'Ввод модели обязателен'}),
     designation: zod.string().min(1, {message: 'Ввод обозначения обязателен'}),
     object_id: zod.string().min(1, {message: 'Ввод объекта обязателен'}),
-    network_number: zod.string(),
+    network_number: zod.string()
+      .min(1, {message: "Ввод обозначения обязателен"})
+      .refine((value) => {
+        // Проверяем, является ли строка числом или число
+        return !isNaN(Number(value));
+      }, {message: "Ввод должен быть числом"}),
     notation: zod.string()
   }
 );
 
 type Values = zod.infer<typeof schema>;
-const defaultValues = {sensor_type: 'Инклинометр', model: 'ИН-Д3', designation: '', object_id: '', network_number: '',  notation: ''} satisfies Values;
+const defaultValues = {
+  sensor_type: 'strainGauge',
+  model: '',
+  designation: '',
+  object_id: '',
+  network_number: '',
+  notation: ''
+} satisfies Values;
 
-export function SignUpFormNewSensor ({onRegistrationSuccess, closeModal, objects}): React.JSX.Element {
+export function SignUpFormNewSensor({onRegistrationSuccess, closeModal, objects}): React.JSX.Element {
   const [isPending, setIsPending] = React.useState<boolean>(false);
   const [isMessage, setIsMessage] = React.useState<string>('');
   const [alertColor, setAlertColor] = React.useState<string>('');
@@ -38,6 +50,7 @@ export function SignUpFormNewSensor ({onRegistrationSuccess, closeModal, objects
 
   const {
     control,
+    watch,
     handleSubmit,
     formState: {errors},
   } = useForm<Values>({defaultValues, resolver: zodResolver(schema)});
@@ -46,17 +59,32 @@ export function SignUpFormNewSensor ({onRegistrationSuccess, closeModal, objects
     async (values: Values): Promise<void> => {
       setIsPending(true);
       setIsMessage("")
-      const result = await customersClient.createNewCustomer(values);
-      if(result?.data?.statusCode === 400){
+      values.network_number = Number(values.network_number)
+      console.log(values)
+      const result = await sensorsClient.createNewSensor(values);
+      console.log('result---',result)
+      if (result?.data?.statusCode === 400) {
         // console.log("result --- ", result?.data);
         setIsPending(false);
         setIsMessage(result?.data?.answer)
-        setAlertColor( "error");
+        setAlertColor("error");
       }
-      if(result?.data?.statusCode === 200){
+      if (result?.statusCode === 500) {
+        // console.log("result --- ", result?.data);
+        setIsPending(false);
+        setIsMessage(result?.message)
+        setAlertColor("error");
+      }
+      if (result?.error) {
+        // console.log("result --- ", result?.data);
+        setIsPending(false);
+        setIsMessage(result?.error)
+        setAlertColor("error");
+      }
+      if (result?.data?.statusCode === 200) {
         console.log("result --- ", result?.data);
         setIsPending(false);
-        setAlertColor( "success");
+        setAlertColor("success");
         setIsMessage(result?.data?.answer)
         onRegistrationSuccess(result?.data);
         setTimeout(() => {
@@ -68,9 +96,15 @@ export function SignUpFormNewSensor ({onRegistrationSuccess, closeModal, objects
     },
     []
   );
-  const organizationOptions = isAllOrganizations.map(user => ({
+
+  const objectOptions = objects.map(user => ({
     value: user.id,
     label: user.name
+  }));
+
+  const sensorsOptions = Object.keys(sensors).map(key => ({
+    value: key,
+    label: sensors[key].type
   }));
 
   return (
@@ -80,19 +114,16 @@ export function SignUpFormNewSensor ({onRegistrationSuccess, closeModal, objects
           <Controller
             control={control}
             name="sensor_type"
-            defaultValue="-1"
-            render={({ field }) => (
+            render={({field}) => (
               <FormControl error={Boolean(errors.sensor_type)}>
                 <InputLabel id="select-label">Выберите датчик</InputLabel>
                 <Select
                   {...field}
                   labelId="select-label"
                   label="Выберите вариант"
+                  defaultValue="strainGauge"
                 >
-                  <MenuItem disabled value="-1">
-                    Выберите датчик
-                  </MenuItem>
-                  {objects.map((option) => (
+                  {sensorsOptions.map((option) => (
                     <MenuItem key={option.value} value={option.value}>
                       {option.label}
                     </MenuItem>
@@ -104,36 +135,51 @@ export function SignUpFormNewSensor ({onRegistrationSuccess, closeModal, objects
           />
           <Controller
             control={control}
-            name="name"
-            render={({field}) => (
-              <FormControl error={Boolean(errors.name)}>
-                <InputLabel>Введите username</InputLabel>
-                <OutlinedInput {...field} label="Введите username"/>
-                {errors.name ? <FormHelperText>{errors.name.message}</FormHelperText> : null}
-              </FormControl>
-            )}
-          />
-          <Controller
-            control={control}
-            name="email"
+            name="model"
             render={({field}) => {
+              const {sensor_type} = watch(); // Получаем текущее значение sensor_type
+              const selectedSensor = sensors[sensor_type]; // Получаем данные о выбранном датчике
+              const models = Array.isArray(selectedSensor.model) ? selectedSensor.model : [selectedSensor.model]; // Проверяем, является ли модель массивом или строкой
               return (
-                <FormControl error={Boolean(errors.email)}>
-                  <InputLabel>Email</InputLabel>
-                  <OutlinedInput {...field} label="Email" type="email"/>
-                  {errors.email ? <FormHelperText>{errors.email.message}</FormHelperText> : null}
+                <FormControl error={Boolean(errors.model)}>
+                  <InputLabel id="model-label">Выберите модель</InputLabel>
+                  <Select
+                    {...field}
+                    labelId="model-label"
+                    label="Выберите модель"
+                  >
+                    {models.map((model) => (
+                      <MenuItem key={model} value={model}>
+                        {model}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {errors.model ? <FormHelperText>{errors.model.message}</FormHelperText> : null}
                 </FormControl>
               );
             }}
           />
           <Controller
             control={control}
-            name="password"
+            name="designation"
+            render={({field}) => {
+              return (
+                <FormControl error={Boolean(errors.designation)}>
+                  <InputLabel>Введите обозначение</InputLabel>
+                  <OutlinedInput {...field} label="Обозначение"/>
+                  {errors.designation ? <FormHelperText>{errors.designation.message}</FormHelperText> : null}
+                </FormControl>
+              );
+            }}
+          />
+          <Controller
+            control={control}
+            name="network_number"
             render={({field}) => (
-              <FormControl error={Boolean(errors.password)}>
-                <InputLabel>Пароль</InputLabel>
-                <OutlinedInput {...field} label="Пароль" type="password"/>
-                {errors.password ? <FormHelperText>{errors.password.message}</FormHelperText> : null}
+              <FormControl error={Boolean(errors.network_number)}>
+                <InputLabel>Введите сетевой номер</InputLabel>
+                <OutlinedInput {...field} label="Сетевой номер"/>
+                {errors.network_number ? <FormHelperText>{errors.network_number.message}</FormHelperText> : null}
               </FormControl>
             )}
           />
@@ -141,18 +187,18 @@ export function SignUpFormNewSensor ({onRegistrationSuccess, closeModal, objects
             control={control}
             name="object_id"
             defaultValue="-1"
-            render={({ field }) => (
+            render={({field}) => (
               <FormControl error={Boolean(errors.object_id)}>
-                <InputLabel id="select-label">Выберите организацию</InputLabel>
+                <InputLabel id="select-label">Выберите объект</InputLabel>
                 <Select
                   {...field}
                   labelId="select-label"
                   label="Выберите вариант"
                 >
                   <MenuItem disabled value="-1">
-                    Выберите организацию
+                    Выберите объект
                   </MenuItem>
-                  {objects.map((option) => (
+                  {objectOptions.map((option) => (
                     <MenuItem key={option.value} value={option.value}>
                       {option.label}
                     </MenuItem>
@@ -162,12 +208,27 @@ export function SignUpFormNewSensor ({onRegistrationSuccess, closeModal, objects
               </FormControl>
             )}
           />
-          <Button disabled={isPending} type="submit" variant="contained" sx={{my:1}}>
+          <Controller
+            control={control}
+            name="notation"
+            render={({field}) => (
+              <FormControl error={Boolean(errors.notation)}>
+                <InputLabel>Примечание</InputLabel>
+                <OutlinedInput {...field} label="Примечание"/>
+                {errors.notation ? <FormHelperText>{errors.notation.message}</FormHelperText> : null}
+              </FormControl>
+            )}
+          />
+          <Button disabled={isPending} type="submit" variant="contained" sx={{my: 1}}>
             {isPending ? (
               <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z" opacity={0.25}></path>
-                <path fill="currentColor" d="M10.72,19.9a8,8,0,0,1-6.5-9.79A7.77,7.77,0,0,1,10.4,4.16a8,8,0,0,1,9.49,6.52A1.54,1.54,0,0,0,21.38,12h.13a1.37,1.37,0,0,0,1.38-1.54,11,11,0,1,0-12.7,12.39A1.54,1.54,0,0,0,12,21.34h0A1.47,1.47,0,0,0,10.72,19.9Z">
-                  <animateTransform attributeName="transform" dur="0.75s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"></animateTransform>
+                <path fill="currentColor"
+                      d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z"
+                      opacity={0.25}></path>
+                <path fill="currentColor"
+                      d="M10.72,19.9a8,8,0,0,1-6.5-9.79A7.77,7.77,0,0,1,10.4,4.16a8,8,0,0,1,9.49,6.52A1.54,1.54,0,0,0,21.38,12h.13a1.37,1.37,0,0,0,1.38-1.54,11,11,0,1,0-12.7,12.39A1.54,1.54,0,0,0,12,21.34h0A1.47,1.47,0,0,0,10.72,19.9Z">
+                  <animateTransform attributeName="transform" dur="0.75s" repeatCount="indefinite" type="rotate"
+                                    values="0 12 12;360 12 12"></animateTransform>
                 </path>
               </svg>
             ) : (
@@ -176,7 +237,7 @@ export function SignUpFormNewSensor ({onRegistrationSuccess, closeModal, objects
               </Box>
             )}
           </Button>
-          {isMessage&&<Alert color={alertColor}>{isMessage}</Alert>}
+          {isMessage && <Alert color={alertColor}>{isMessage}</Alert>}
         </Stack>
       </form>
     </Stack>

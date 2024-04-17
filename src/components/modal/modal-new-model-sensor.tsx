@@ -2,13 +2,23 @@ import React, {useState} from 'react';
 import {Button, Modal, Typography} from '@mui/material';
 import Box from "@mui/material/Box";
 import {SignUpFormNewCustomer} from "@/components/auth/sign-up-form-new-customer";
-import Stack from "@mui/material/Stack";
+import {SignUpFormOrganization} from "@/components/auth/sign-up-form-organization";
 import {X} from "@phosphor-icons/react";
-import {SignUpFormNewSensor} from "@/components/auth/sign-up-form-new-sensor";
+import Stack from "@mui/material/Stack";
+import {SignUpFormNewTypeSensor} from "@/components/auth/sign-up-form-new-type-sensor";
 
-const ModalNewSensor: React.FC = ({ isOpen, onClose, onRegistrationSuccess, objects }) => {
+const ModalNewModelSensor: React.FC = ({ isOpen, onClose, isSensorKey }) => {
+  const [open, setOpen] = useState<boolean>(false);
+  const [isFirst, setIsFirst] = useState(false);
+
+  const onRegistrationSuccess=(result)=> {
+    if (result)  {
+      alert(result.data)
+    }
+  }
+
   return (
-    <>
+    <Box>
       <Modal
         open={isOpen}
         onClose={onClose}
@@ -27,16 +37,17 @@ const ModalNewSensor: React.FC = ({ isOpen, onClose, onRegistrationSuccess, obje
           boxShadow: 24,
           p: 4
         }}>
+
           <Stack id="modal-modal-title"  sx={{marginBottom:3}}>
             <Box display="flex" alignItems="center" justifyContent="flex-end">
               <X size={32} onClick={onClose} style={{ cursor: "pointer" }} />
             </Box>
           </Stack>
-          <SignUpFormNewSensor onRegistrationSuccess={onRegistrationSuccess} closeModal={onClose} objects={objects}/>
+          <SignUpFormNewTypeSensor  closeModal={onClose} isSensorKey={isSensorKey} onRegistrationSuccess={onRegistrationSuccess} isDisabled/>
         </Box>
       </Modal>
-    </>
+    </Box>
   );
 }
 
-export default ModalNewSensor;
+export default ModalNewModelSensor;

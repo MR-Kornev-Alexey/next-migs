@@ -13,6 +13,7 @@ import Box from "@mui/material/Box";
 import ModalNewSensor from "@/components/modal/modal-new-sensor";
 import Alert from "@mui/material/Alert";
 import {SignUpFormNewSensor} from "@/components/auth/sign-up-form-new-sensor";
+import {sensorsClient} from "@/lib/sensors/sensors-client";
 
 
 
@@ -42,11 +43,11 @@ export default function Page(): React.JSX.Element {
 
 
   useEffect(() => {
-    Promise.all([fetchAllOrganizations(), fetchAllObjects()])
-      .then(([organizationsData, objectsData]) => {
+    Promise.all([fetchAllSensors(), fetchAllObjects()])
+      .then(([sensorsData, objectsData]) => {
         setLoading(true);
         if(objectsData?.data.length > 0) {
-          setSensors(organizationsData?.data);
+          setSensors(sensorsData?.data);
           setObjects(objectsData?.data);
         }
         else {
@@ -58,16 +59,14 @@ export default function Page(): React.JSX.Element {
       });
   }, []);
 
-  async function fetchAllOrganizations(): Promise<Customer[]> {
-    return await organizationClient.getAllOrganization();
+  async function fetchAllSensors(): Promise<Customer[]> {
+    return await sensorsClient.getAllSensors();
   }
-
 
   async function fetchAllObjects(): Promise<Customer[]> {
     return await objectClient.getAllObjects();
   }
   async function onRegistrationSuccess(objectsData) {
-    console.log(objectsData.data.allObjects)
     setObjects(objectsData?.data.allObjects);
   }
 
@@ -174,10 +173,10 @@ export default function Page(): React.JSX.Element {
               </Box>
             )}
             <Typography variant="h4">Датчики</Typography>
-            <SensorsPaginationAndSelectTable openModal={openModal} rows={objects}/>
+            <SensorsPaginationAndSelectTable openModal={openModal} rows={sensors}/>
         </Stack>}
 
-      <ModalNewSensor isOpen={isModalOpen} onClose={closeModal} onRegistrationSuccess={onRegistrationSuccess} isAllObjects = {objects}/>
+      <ModalNewSensor isOpen={isModalOpen} onClose={closeModal} onRegistrationSuccess={onRegistrationSuccess} objects = {objects}/>
     </Stack>
   );
 }
