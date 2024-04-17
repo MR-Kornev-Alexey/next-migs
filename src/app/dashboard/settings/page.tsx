@@ -14,7 +14,6 @@ import {objectClient} from "@/lib/objects/object-client";
 import ImportExportButtons from "@/lib/common/importExportButtons";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import ModalNewTypeSensor from "@/components/modal/modal-new-type-sensor";
 import {sensorsClient} from "@/lib/sensors/sensors-client";
 import jsonData from "@/lib/json/sensors.json"
 import TypeSensorsWithoutSelect from "@/components/tables/typeSensorsWithoutSelect";
