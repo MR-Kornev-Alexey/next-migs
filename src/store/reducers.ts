@@ -5,6 +5,7 @@ import userReducer from "./userReducer";
 import addUserReducer from "./addUserReducer"
 import mainUserReducer from "./mainUserReducer"
 import notificationReducer from "./notificationReducer"
+import additionalDataOfSensorReducer from "@/store/additionalDataOfSensorReducer";
 
 // Объединяем редюсеры
 const rootReducer = combineReducers({
@@ -12,7 +13,8 @@ const rootReducer = combineReducers({
   user: userReducer,
   addUser: addUserReducer,
   mainUser: mainUserReducer,
-  notifications: notificationReducer
+  notifications: notificationReducer,
+  additionalDataOfSensor: additionalDataOfSensorReducer
 });
 
 export default rootReducer;

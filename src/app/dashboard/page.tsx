@@ -8,8 +8,6 @@ import { RootState, AppDispatch } from '@/store/store';
 import {Notifications} from "@/components/dashboard/settings/notifications";
 
 export default function Page(): React.JSX.Element {
-  const usersData = useSelector((state: RootState) => state.user.value);
-  console.log('usersData - ', usersData)
   return (
     <Stack spacing={3}>
       <div>

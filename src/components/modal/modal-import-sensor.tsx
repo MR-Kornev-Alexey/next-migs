@@ -1,13 +1,13 @@
-import React, {useState} from 'react';
-import {Button, Modal, Typography} from '@mui/material';
+import React from 'react';
+import {Modal} from '@mui/material';
 import Box from "@mui/material/Box";
-import {SignUpFormNewCustomer} from "@/components/auth/sign-up-form-new-customer";
 import Stack from "@mui/material/Stack";
 import {X} from "@phosphor-icons/react";
+import {SignUpFormImportSensors} from "@/components/auth/sign-up-form-import-sensor";
+import Typography from "@mui/material/Typography";
 
-const ModalNewCustomer: React.FC = ({ isOpen, onClose, onRegistrationCustomerSuccess }) => {
+const ModalImportSensor: React.FC = ({ isOpen, onClose, onRegistrationSensorSuccess, objects, typesSensors}) => {
   return (
-    <Box>
       <Modal
         open={isOpen}
         onClose={onClose}
@@ -30,12 +30,12 @@ const ModalNewCustomer: React.FC = ({ isOpen, onClose, onRegistrationCustomerSuc
             <Box display="flex" alignItems="center" justifyContent="flex-end">
               <X size={32} onClick={onClose} style={{ cursor: "pointer" }} />
             </Box>
+            <Typography variant="h5" >импорт только .csv файлов</Typography>
           </Stack>
-          <SignUpFormNewCustomer onRegistrationCustomerSuccess={onRegistrationCustomerSuccess} closeModal={onClose}/>
+          <SignUpFormImportSensors  closeModal={onClose} onRegistrationSensorSuccess={onRegistrationSensorSuccess} objects={objects} typesSensors={typesSensors}/>
         </Box>
       </Modal>
-    </Box>
   );
 }
 
-export default ModalNewCustomer;
+export default ModalImportSensor;

@@ -23,14 +23,8 @@ import RouterLink from "next/link";
 import {paths} from "@/paths";
 
 export function Notifications(): React.JSX.Element {
-  const arrayNotifications = useSelector((state: RootState) => state.notifications.value);
-  console.log('arrayNotifications - ', arrayNotifications)
   // Создаем новый массив без дубликатов по id
-  const uniqueArrayNotifications = arrayNotifications.filter((notification, index, self) =>
-      index === self.findIndex((n) => (
-        n.id === notification.id
-      ))
-  );
+
   return (
     <form
       onSubmit={(event) => {
@@ -40,22 +34,22 @@ export function Notifications(): React.JSX.Element {
       <Card>
         <Divider/>
         <CardContent>
-          {arrayNotifications.length === 0? <Box> <Typography variant="body2">Уведомлений нет</Typography></Box> :
-            <Box>
-              {uniqueArrayNotifications.map((item, index) =>
-                <Grid container spacing={2} key={index}>
-                  <Grid  xs={12} md={9}>
-                    {item.label}
-                  </Grid>
-                  <Grid  xs={12} md={3}>
-                    <Link component={RouterLink} href={item.link} variant="subtitle2">
-                      Исправить
-                    </Link>
-                  </Grid>
-                </Grid>)
-              }
-            </Box>
-          }
+          {/*{arrayNotifications.length === 0? <Box> <Typography variant="body2">Уведомлений нет</Typography></Box> :*/}
+          {/*  <Box>*/}
+          {/*    {uniqueArrayNotifications.map((item, index) =>*/}
+          {/*      <Grid container spacing={2} key={index}>*/}
+          {/*        <Grid  xs={12} md={9}>*/}
+          {/*          {item.label}*/}
+          {/*        </Grid>*/}
+          {/*        <Grid  xs={12} md={3}>*/}
+          {/*          <Link component={RouterLink} href={item.link} variant="subtitle2">*/}
+          {/*            Исправить*/}
+          {/*          </Link>*/}
+          {/*        </Grid>*/}
+          {/*      </Grid>)*/}
+          {/*    }*/}
+          {/*  </Box>*/}
+          {/*}*/}
         </CardContent>
         <Divider/>
         <CardActions sx={{justifyContent: 'flex-end'}}>

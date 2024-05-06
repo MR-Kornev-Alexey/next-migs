@@ -227,7 +227,7 @@ export function SignUpFormObject({
                                   values="0 12 12;360 12 12"></animateTransform>
               </path>
             </svg> : <Box>
-              Зарегестрировать
+              Зарегистрировать
             </Box>
             }
           </Button>

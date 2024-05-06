@@ -6,7 +6,7 @@ import Stack from "@mui/material/Stack";
 import {X} from "@phosphor-icons/react";
 import {SignUpFormNewSensor} from "@/components/auth/sign-up-form-new-sensor";
 
-const ModalNewSensor: React.FC = ({ isOpen, onClose, onRegistrationSuccess, objects, typesSensors}) => {
+const ModalNewSensor: React.FC = ({ isOpen, onClose, onRegistrationSensorSuccess, objects, typesSensors}) => {
   return (
       <Modal
         open={isOpen}
@@ -31,7 +31,7 @@ const ModalNewSensor: React.FC = ({ isOpen, onClose, onRegistrationSuccess, obje
               <X size={32} onClick={onClose} style={{ cursor: "pointer" }} />
             </Box>
           </Stack>
-          <SignUpFormNewSensor  closeModal={onClose} onRegistrationSuccess={onRegistrationSuccess} objects={objects} typesSensors={typesSensors}/>
+          <SignUpFormNewSensor  closeModal={onClose} onRegistrationSensorSuccess={onRegistrationSensorSuccess} objects={objects} typesSensors={typesSensors}/>
         </Box>
       </Modal>
   );

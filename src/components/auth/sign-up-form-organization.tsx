@@ -15,8 +15,7 @@ import Box from "@mui/material/Box";
 import Alert from "@mui/material/Alert";
 
 
-
-export function SignUpFormOrganization({closeModal, onRegistrationSuccess, }): React.JSX.Element {
+export function SignUpFormOrganization({isMain, closeModal, onRegistrationSuccess,}): React.JSX.Element {
   const [isPending, setIsPending] = React.useState<boolean>(false);
   const [isMessage, setIsMessage] = React.useState<string>('');
   const [alertColor, setAlertColor] = React.useState<string>('');
@@ -57,28 +56,35 @@ export function SignUpFormOrganization({closeModal, onRegistrationSuccess, }): R
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
       setIsPending(true);
-      const result = await organizationClient.createNewOrganization(values);
-      if(result?.data?.statusCode === 200){
+      let result;
+      if (isMain) {
+        result = await organizationClient.initMainOrganization(values);
+      } else {
+        result = await organizationClient.createNewOrganization(values);
+      }
+      if (result?.data?.statusCode === 200) {
         setIsPending(false);
-        setAlertColor( "success");
+        setAlertColor("success");
         setIsMessage(result?.data?.message)
         setTimeout(() => {
           // обновленные данные в таблицу
           onRegistrationSuccess(result)
-          closeModal(false)
+          if (!isMain){
+            closeModal(false)
+          }
         }, 2000);
       }
-      if(result?.data?.statusCode === 400){
+      if (result?.data?.statusCode === 400) {
         // console.log("result --- ", result?.data);
         setIsPending(false);
         setIsMessage(result?.data?.message)
-        setAlertColor( "error");
+        setAlertColor("error");
       }
       // Проверить наличие ошибки
       if (result?.error) {
         setIsPending(false);
         setIsMessage(result?.data?.message)
-        setAlertColor( "error");
+        setAlertColor("error");
         return
       }
     },
@@ -86,7 +92,10 @@ export function SignUpFormOrganization({closeModal, onRegistrationSuccess, }): R
   );
   return (
     <Stack spacing={3}>
-          <Typography variant="h4">Добавление новой организации</Typography>
+      {isMain ? <Typography variant="h4">Добавление главной организации</Typography> :
+        <Typography variant="h4">Добавление новой организации</Typography>
+      }
+
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
           <Controller
@@ -166,11 +175,11 @@ export function SignUpFormOrganization({closeModal, onRegistrationSuccess, }): R
                                   values="0 12 12;360 12 12"></animateTransform>
               </path>
             </svg> : <Box>
-              Зарегестрировать
+              Зарегистрировать
             </Box>
             }
           </Button>
-          {isMessage&&<Alert color={alertColor}>{isMessage}</Alert>}
+          {isMessage && <Alert color={alertColor}>{isMessage}</Alert>}
         </Stack>
       </form>
     </Stack>

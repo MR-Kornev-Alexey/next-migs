@@ -1,19 +1,14 @@
 import * as React from 'react';
-import {useRouter} from 'next/navigation';
 import {zodResolver} from '@hookform/resolvers/zod';
 import Button from '@mui/material/Button';
 import FormControl from '@mui/material/FormControl';
 import FormHelperText from '@mui/material/FormHelperText';
 import InputLabel from '@mui/material/InputLabel';
 import OutlinedInput from '@mui/material/OutlinedInput';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';;
 import {Controller, useForm} from 'react-hook-form';
 import {z as zod} from 'zod';
-import {authClient} from '@/lib/auth/client';
-import {useUser} from '@/hooks/use-user';
 import Box from "@mui/material/Box";
-import OrganisationList from "@/components/select/organisation-list";
 import {useEffect} from "react";
 import {fetchAllOrganizations} from "@/components/dashboard/organizations/fetchAllOrganizations";
 import {customersClient} from "@/lib/customers/customers-client";
@@ -25,26 +20,26 @@ const schema = zod.object({
     name: zod.string()
       .min(1, {message: 'Ввод username обязателен'}),
     email: zod.string().min(1, {message: 'Ввод email обязателен'}).email(),
+    role: zod.string().min(1, {message: 'Выбор пользователя обязателен'}),
     password: zod.string().min(8, {message: 'Минимальное количество 8 знаков'}),
-    organization_id: zod.string().min(1, {message: 'Ввод организации обязателен'}),
+    organization_id: zod.string().min(1, {message: 'Выбор организации обязателен'}),
     registration_status: zod.string(),
-    role: zod.string()
   }
 );
 
 type Values = zod.infer<typeof schema>;
 const defaultValues = {name: 'dimas', email: 'dimas@mail.ru', password: '', organization_id: '', registration_status: "NOT_COMPLETED",  role: 'customer'} satisfies Values;
 
-export function SignUpFormNewCustomer({onRegistrationSuccess, closeModal}): React.JSX.Element {
+export function SignUpFormNewCustomer({onRegistrationCustomerSuccess, closeModal}): React.JSX.Element {
   const [isPending, setIsPending] = React.useState<boolean>(false);
   const [isMessage, setIsMessage] = React.useState<string>('');
   const [alertColor, setAlertColor] = React.useState<string>('');
   const [isAllOrganizations, setAllOrganizations] = React.useState<string>([]);
 
   useEffect(() => {
-    fetchAllOrganizations().then((data) => {
+    fetchAllOrganizations().then((data:any) => {
       console.log(data)
-      setAllOrganizations(data);
+      setAllOrganizations(data?.allOrganizations);
     }).catch((error) => {
       console.error('Ошибка при загрузке данных:', error);
     });
@@ -60,33 +55,47 @@ export function SignUpFormNewCustomer({onRegistrationSuccess, closeModal}): Reac
     async (values: Values): Promise<void> => {
       setIsPending(true);
       setIsMessage("")
-      const result = await customersClient.createNewCustomer(values);
-      if(result?.data?.statusCode === 400){
-        // console.log("result --- ", result?.data);
-        setIsPending(false);
-        setIsMessage(result?.data?.answer)
-        setAlertColor( "error");
-      }
-      if(result?.data?.statusCode === 200){
-        console.log("result --- ", result?.data);
-        setIsPending(false);
-        setAlertColor( "success");
-        setIsMessage(result?.data?.answer)
-        onRegistrationSuccess(result?.data);
-        setTimeout(() => {
-          // обновленные данные в таблицу
-          closeModal(false)
-        }, 2000);
+      const result:any = await customersClient.createNewCustomer(values);
+      switch (result?.data?.statusCode) {
+        case 200:
+          setAlertColor("success");
+          setIsMessage(result?.data?.message);
+          onRegistrationCustomerSuccess(result?.data?.allUsers)
+          setTimeout(() => {
+            closeModal(false);
+          }, 2000);
+          break;
+        case 400:
+        case 500:
+          setAlertColor("error");
+          setIsMessage(result?.data?.message);
+          break;
+        default:
+          // Обрабатываем ошибку
+          setAlertColor("error");
+          setIsMessage(result?.error?.message || "Произошла ошибка");
+          break;
       }
       setIsPending(false);
     },
     []
   );
-  const organizationOptions = isAllOrganizations.map(user => ({
+  const organizationOptions = isAllOrganizations.map((user: any) => ({
     value: user.id,
     label: user.name
   }));
 
+  const choiceOfRole  = [
+    { label: "Пользователь",
+      value: 'customer'
+     },
+    { label: "Диспетчер",
+      value: 'dispatcher'
+    },
+    { label: "Администратор",
+      value: 'admin'
+    }
+  ]
   return (
     <Stack spacing={3}>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -99,6 +108,31 @@ export function SignUpFormNewCustomer({onRegistrationSuccess, closeModal}): Reac
                 <InputLabel>Введите username</InputLabel>
                 <OutlinedInput {...field} label="Введите username"/>
                 {errors.name ? <FormHelperText>{errors.name.message}</FormHelperText> : null}
+              </FormControl>
+            )}
+          />
+          <Controller
+            control={control}
+            name="role"
+            defaultValue="customer"
+            render={({ field }) => (
+              <FormControl error={Boolean(errors.role)}>
+                <InputLabel id="select-label">Выберите организацию</InputLabel>
+                <Select
+                  {...field}
+                  labelId="select-label"
+                  label="Выберите вариант"
+                >
+                  <MenuItem disabled value="-1">
+                    Выберите статус
+                  </MenuItem>
+                  {choiceOfRole.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {errors.role ? <FormHelperText>{errors.role.message}</FormHelperText> : null}
               </FormControl>
             )}
           />

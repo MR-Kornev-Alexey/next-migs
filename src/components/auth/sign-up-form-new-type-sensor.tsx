@@ -136,7 +136,7 @@ export function SignUpFormNewTypeSensor({closeModal, isResultSuccess, isSensorKe
                                   values="0 12 12;360 12 12"></animateTransform>
               </path>
             </svg> : <Box>
-              Зарегестрировать
+              Зарегистрировать
             </Box>
             }
           </Button>

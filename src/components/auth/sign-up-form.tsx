@@ -129,7 +129,7 @@ export function SignUpForm(): React.JSX.Element {
                                   values="0 12 12;360 12 12"></animateTransform>
               </path>
             </svg>: <Box>
-              Зарегестрироваться
+              Зарегистрироваться
             </Box>
             }
           </Button>

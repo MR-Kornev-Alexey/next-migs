@@ -31,7 +31,7 @@ export class ObjectClient {
       };
       return await axios.post(
         'http://localhost:5000/objects/get_all_objects',
-        JSON.stringify(sendData), // Преобразование объекта в JSON-строку
+        JSON.stringify(sendData),
         { headers: await getHeaders() }
       );
     }catch (error) {

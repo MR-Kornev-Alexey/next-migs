@@ -41,18 +41,30 @@ export class OrganizationClient {
       return { error: error.message };
     }
   }
-
+  async initMainOrganization(formDataOrganization: FormDataOrganization) {
+    console.log(formDataOrganization)
+    try{
+      return await axios.post(
+        'http://localhost:5000/organization/initial_main_organization',
+         JSON.stringify(formDataOrganization), // Преобразование объекта в JSON-строку
+        { headers: await getHeaders() }// Передача заголовков в конфигурацию запроса
+      );
+    } catch (error) {
+      console.error('Произошла ошибка:', error.message);
+      return { error: error.message };
+    }
+  }
   async createNewOrganization(formDataOrganization: FormDataOrganization) {
     console.log(formDataOrganization)
     let getEmail = await getHeaders()
     try{
       const sentData = {
-        email:getEmail,
+        email:getEmail.email,
         organizationsData: formDataOrganization
       }
       return await axios.post(
         'http://localhost:5000/organization/create_new_organization',
-         JSON.stringify(formDataOrganization), // Преобразование объекта в JSON-строку
+         JSON.stringify(sentData), // Преобразование объекта в JSON-строку
         { headers: await getHeaders() }// Передача заголовков в конфигурацию запроса
       );
     } catch (error) {

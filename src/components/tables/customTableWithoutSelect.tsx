@@ -9,15 +9,12 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import TableHead from "@mui/material/TableHead";
 import {UserGear} from "@phosphor-icons/react/dist/ssr/UserGear";
-import {useSelection} from "@/hooks/use-selection";
-import Checkbox from "@mui/material/Checkbox";
 import {TablePaginationActions} from "@/components/tables/tablePaginationActions";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import {Trash} from "@phosphor-icons/react";
+import setRole from "@/lib/common/role";
 
 
-export default function CustomTableWithoutSelect({ rows, openModal, selectOrganization, restoreAllOrganization, page, setPage }) {
+export default function CustomTableWithoutSelect({ rows, selectOrganization, deleteCustomer, infoAboutCustomer, page, setPage }) {
   // Удалите локальное состояние page
   const [isButtonClear, setIsButtonClear] = React.useState(false);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
@@ -75,12 +72,12 @@ export default function CustomTableWithoutSelect({ rows, openModal, selectOrgani
                   {row.email}
                 </TableCell>
                 <TableCell style={{ width: "20%" }} align="center">
-                  {row.role}
+                  {setRole(row.role)}
                 </TableCell>
-                <TableCell style={{ width: "5%" }} align="center">
+                <TableCell style={{ width: "5%", cursor: "pointer" }} align="center" onClick={() => infoAboutCustomer(row)}>
                   <UserGear size={24} />
                 </TableCell>
-                <TableCell style={{ width: "5%" }} align="center">
+                <TableCell style={{ width: "5%", cursor: "pointer" }} align="center" onClick={() => deleteCustomer(row.id) }>
                   <Trash size={24} />
                 </TableCell>
               </TableRow>
@@ -107,10 +104,6 @@ export default function CustomTableWithoutSelect({ rows, openModal, selectOrgani
           </TableRow>
         </TableFooter>
       </Table>
-      <Box display="flex" justifyContent="space-between">
-        {isButtonClear&&<Button variant="contained" onClick={() => { restoreAllOrganization(); setIsButtonClear(false); }}>Сбросить выборку</Button>}
-        <Button variant="contained"  onClick={openModal}>Добавить пользователя</Button>
-      </Box>
     </TableContainer>
   );
 }

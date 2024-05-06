@@ -1,11 +1,11 @@
-import React, {useState} from 'react';
-import {Button, Modal, Typography} from '@mui/material';
+import React from 'react';
+import {Modal} from '@mui/material';
 import Box from "@mui/material/Box";
-import {SignUpFormNewCustomer} from "@/components/auth/sign-up-form-new-customer";
-import Stack from "@mui/material/Stack";
 import {X} from "@phosphor-icons/react";
+import Stack from "@mui/material/Stack";
+import {SignUpFormAddLog} from "@/components/auth/sign-up-form-add-log";
 
-const ModalNewCustomer: React.FC = ({ isOpen, onClose, onRegistrationCustomerSuccess }) => {
+const ModalNewOperationLogSensor: React.FC = ({ isOpen, onClose, dataOfSensor, successOfDownloadLogData}) => {
   return (
     <Box>
       <Modal
@@ -26,16 +26,16 @@ const ModalNewCustomer: React.FC = ({ isOpen, onClose, onRegistrationCustomerSuc
           boxShadow: 24,
           p: 4
         }}>
+
           <Stack id="modal-modal-title"  sx={{marginBottom:3}}>
             <Box display="flex" alignItems="center" justifyContent="flex-end">
               <X size={32} onClick={onClose} style={{ cursor: "pointer" }} />
             </Box>
           </Stack>
-          <SignUpFormNewCustomer onRegistrationCustomerSuccess={onRegistrationCustomerSuccess} closeModal={onClose}/>
+          <SignUpFormAddLog  closeModal={onClose} dataOfSensor={dataOfSensor} successOfDownload={successOfDownloadLogData}/>
         </Box>
       </Modal>
     </Box>
   );
 }
-
-export default ModalNewCustomer;
+export default ModalNewOperationLogSensor;

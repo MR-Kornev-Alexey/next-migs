@@ -1,6 +1,5 @@
 import * as React from 'react';
 import Stack from '@mui/material/Stack';
-// Подставьте соответствующие иконки
 import Button from "@mui/material/Button";
 import {Upload as UploadIcon} from "@phosphor-icons/react/dist/ssr/Upload";
 import {Download as DownloadIcon} from "@phosphor-icons/react/dist/ssr/Download";

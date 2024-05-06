@@ -9,13 +9,12 @@ import CardHeader from '@mui/material/CardHeader';
 import Divider from '@mui/material/Divider';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
 import OutlinedInput from '@mui/material/OutlinedInput';
-import Select from '@mui/material/Select';
 import Grid from '@mui/material/Unstable_Grid2';
 
 const defaultValues = { firstName: '',  secondName: '',  phone: '', telegram: '', position: '', organisation: '' } satisfies Values;
 import { z } from 'zod';
+import Typography from "@mui/material/Typography";
 
 const Cyrillic = z.string().regex(/^[А-Яа-яЁё]+$/);
 
@@ -27,6 +26,12 @@ const schema = z.object({
 const onSubmit = (data) => {
   console.log(data); // Вы можете отправить данные после успешной валидации
 };
+
+// firstName: 'Elena',
+//   surName: 'Petrova',
+//   telegram: '@Petrova',
+//   position: 'Manager',
+//   phone: '+79809090101',
 
 export function AccountDetailsForm({dataUser , changeData}): React.JSX.Element {
   return (
@@ -40,36 +45,29 @@ export function AccountDetailsForm({dataUser , changeData}): React.JSX.Element {
         <Divider />
         <CardContent>
           <Grid container spacing={3}>
-            <Grid md={6} xs={12}>
-              <FormControl fullWidth disabled>
-                <InputLabel>Имя</InputLabel>
-                <OutlinedInput defaultValue={dataUser?.additionalUserInfo[0].firstName} label="Имя" name="firstName" />
-              </FormControl>
-            </Grid>
-            <Grid md={6} xs={12}>
-              <FormControl fullWidth disabled>
-                <InputLabel>Фамилия</InputLabel>
-                <OutlinedInput defaultValue={dataUser?.additionalUserInfo[0].surName}  label="Фамилия" name="lastName" />
-              </FormControl>
-            </Grid>
-            <Grid md={6} xs={12}>
-              <FormControl fullWidth disabled>
-                <InputLabel>Номер телефона</InputLabel>
-                <OutlinedInput defaultValue={dataUser?.additionalUserInfo[0].phone}  label="Номер телефона" name="phone" type="tel" />
-              </FormControl>
-            </Grid>
-            <Grid md={6} xs={12}>
-              <FormControl fullWidth disabled>
-                <InputLabel>Telegram</InputLabel>
-                <OutlinedInput defaultValue={dataUser?.additionalUserInfo[0].telegram}  label="Telegram" />
-              </FormControl>
-            </Grid>
-            <Grid md={6} xs={12}>
-              <FormControl fullWidth disabled>
-                <InputLabel>Должность</InputLabel>
-                <OutlinedInput defaultValue={dataUser?.additionalUserInfo[0].position}  label="Должность" />
-              </FormControl>
-            </Grid>
+            {dataUser?.additionalUserInfo[0] ? (
+              <>
+                <Grid md={6} xs={12}>
+                  <Typography variant="body1">{dataUser.additionalUserInfo[0].firstName}</Typography>
+                </Grid>
+                <Grid md={6} xs={12}>
+                  <Typography variant="body1">{dataUser.additionalUserInfo[0].surName}</Typography>
+                </Grid>
+                <Grid md={6} xs={12}>
+                  <Typography variant="body1">{dataUser.additionalUserInfo[0].telegram}</Typography>
+                </Grid>
+                <Grid md={6} xs={12}>
+                  <Typography variant="body1">{dataUser.additionalUserInfo[0].position}</Typography>
+                </Grid>
+                <Grid md={6} xs={12}>
+                  <Typography variant="body1">{dataUser.additionalUserInfo[0].phone}</Typography>
+                </Grid>
+              </>
+            ) : (
+              <Grid item xs={12}>
+                <Typography variant="body1">Дополнительная информация недоступна</Typography>
+              </Grid>
+            )}
           </Grid>
         </CardContent>
         <CardActions sx={{ display: 'flex', justifyContent: 'center' }}>

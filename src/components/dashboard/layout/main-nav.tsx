@@ -20,7 +20,7 @@ import {AppDispatch, RootState} from "@/store/store";
 import {useDispatch, useSelector} from "react-redux";
 import {addNotifications} from "@/store/notificationReducer";
 import {Question} from "@phosphor-icons/react";
-import ExpandingWindow from "@/lib/expandingWindow/expandingWindow";
+import ExpandingWindow from "@/lib/expanding-window/expanding-window";
 import {useState} from "react";
 
 export function MainNav(): React.JSX.Element {

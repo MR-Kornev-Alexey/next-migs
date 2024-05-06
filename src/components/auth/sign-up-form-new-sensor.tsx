@@ -9,18 +9,20 @@ import Stack from '@mui/material/Stack';
 import { Controller, useForm } from 'react-hook-form';
 import {z as zod} from 'zod';
 import Box from "@mui/material/Box";
-import {customersClient} from "@/lib/customers/customers-client";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import Alert from "@mui/material/Alert";
 import {sensorsClient} from "@/lib/sensors/sensors-client";
+import sensors from "@/lib/common/sensors";
+import {customersClient} from "@/lib/customers/customers-client";
 
 
-export function SignUpFormNewSensor({onRegistrationSuccess, closeModal, objects, typesSensors}): React.JSX.Element {
+export function SignUpFormNewSensor({onRegistrationSensorSuccess, closeModal, objects, typesSensors}): React.JSX.Element {
   const [isPending, setIsPending] = React.useState<boolean>(false);
   const [isMessage, setIsMessage] = React.useState<string>('');
   const [alertColor, setAlertColor] = React.useState<string>('');
   const [selectedSensorType, setSelectedSensorType] = React.useState("-1");
+  const [selectedSensorKey, setSelectedSensorKey] = React.useState("-1");
 
   const schema = zod.object({
       sensor_type: zod.string()
@@ -28,64 +30,63 @@ export function SignUpFormNewSensor({onRegistrationSuccess, closeModal, objects,
       model: zod.string().min(1, {message: 'Ввод модели обязателен'}),
       designation: zod.string().min(1, {message: 'Ввод обозначения обязателен'}),
       object_id: zod.string().min(1, {message: 'Ввод объекта обязателен'}),
-    network_number: zod.string()
-      .min(1, { message: 'Ввод заодсеого номера обязателен' })
+      network_number: zod.string()
+      .min(1, { message: 'Ввод сетвого номера обязателен' })
       .regex(/^\d+$/, { message: 'Значение должно состоять только из цифр' }),
-      notation: zod.string()
+      notation: zod.string(),
+      sensor_key: zod.string()
     }
   );
 
   type Values = zod.infer<typeof schema>;
   const defaultValues = {
     sensor_type: selectedSensorType,
+    sensor_key: selectedSensorKey,
     model: '',
     designation: "",
     object_id: '',
     network_number: '',
     notation: ''
   } satisfies Values;
+
   const {
     control,
     handleSubmit,
-    formState: {errors, },setValue
+    formState: {errors}
   } = useForm<Values>({defaultValues, resolver: zodResolver(schema)});
 
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
       setIsPending(true);
       setIsMessage("")
-      console.log(values)
       values.network_number = Number(values.network_number)
-      const result = await sensorsClient.setNewSensorToObject(values);
-      console.log(result)
-      if (result?.data?.statusCode === 400) {
-        // console.log("result --- ", result?.data);
-        setIsPending(false);
-        setIsMessage(result?.data?.message)
-        setAlertColor("error");
-      }
-      if (result?.data?.statusCode === 500) {
-        // console.log("result --- ", result?.data);
-        setIsPending(false);
-        setIsMessage(result?.data?.message)
-        setAlertColor("error");
-      }
-      if (result?.error) {
-        // console.log("result --- ", result?.data);
-        setIsPending(false);
-        setIsMessage(result?.data?.message)
-        setAlertColor("error");
-      }
-      if (result?.data?.statusCode === 200) {
-        console.log("result --- ", result?.data);
-        setIsPending(false);
-        setAlertColor("success");
-        setIsMessage(result?.data?.message)
-        // onRegistrationSuccess(result?.data);
-        setTimeout(() => {
-          // обновленные данные в таблицу
-          closeModal(false)
-        }, 2000);
+      values.sensor_type = sensors[values.sensor_key].type
+      const result:any = await sensorsClient.setNewSensorToObject(values);
+      switch (result?.data?.statusCode) {
+        case 200:
+          setAlertColor("success");
+          setIsMessage(result?.data?.message);
+          onRegistrationSensorSuccess(result?.data);
+          setTimeout(() => {
+            closeModal(false);
+          }, 2000);
+          break;
+        case 400:
+        case 500:
+          setAlertColor("error");
+          setIsMessage(result?.data?.message);
+          setTimeout(() => {
+            closeModal(false);
+          }, 2000);
+          break;
+        default:
+          // Обрабатываем ошибку
+          setAlertColor("error");
+          setIsMessage(result?.error?.message || "Произошла ошибка обработки данных");
+          setTimeout(() => {
+            closeModal(false);
+          }, 2000);
+          break;
       }
       setIsPending(false);
     },
@@ -103,38 +104,31 @@ export function SignUpFormNewSensor({onRegistrationSuccess, closeModal, objects,
         <Stack spacing={2}>
           <Controller
             control={control}
-            name="sensor_type"
+            name="sensor_key"
             defaultValue="-1"
             render={({ field }) => (
-              <FormControl error={Boolean(errors.sensor_type)}>
+              <FormControl error={Boolean(errors.sensor_key)}>
                 <InputLabel id="select-label">Выберите тип датчика</InputLabel>
                 <Select
                   {...field}
                   labelId="select-label"
                   label="Выберите вариант"
                   onChange={(e) => {
-                    const selectedType = e.target.value;
-                    setSelectedSensorType(selectedType); // Здесь сохраняем выбранный тип датчика
-                    field.onChange(selectedType); // Здесь также обновляем значение контроллера
-                    // Дополнительная логика обработки при выборе типа датчика, если необходимо
-                    // const selectedSensor = typesSensors.find((sensor) => sensor.sensor_type === selectedType);
-                    // if (selectedSensor) {
-                    //   // Обновить selectedSensorKey и selectedSensorModal
-                    //   console.log('selectedSensor --', selectedSensor.sensor_key)
-                    //   setValue("sensor_key", selectedSensor.sensor_key);
-                    // }
+                    const selectedKey = e.target.value;
+                    setSelectedSensorKey(selectedKey); // Здесь сохраняем выбранный тип датчика
+                    field.onChange(selectedKey); // Здесь также обновляем значение контроллера
                   }}
                 >
                   <MenuItem disabled value="-1">
                     Выберите тип датчика
                   </MenuItem>
                   {typesSensors.map((sensor) => (
-                    <MenuItem key={sensor.sensor_key} value={sensor.sensor_type}>
+                    <MenuItem key={sensor.sensor_key} value={sensor.sensor_key}>
                       {sensor.sensor_type}
                     </MenuItem>
                   ))}
                 </Select>
-                {errors.sensor_type ? <FormHelperText>{errors.sensor_type.message}</FormHelperText> : null}
+                {errors.sensor_key ? <FormHelperText>{errors.sensor_key.message}</FormHelperText> : null}
               </FormControl>
             )}
           />
@@ -153,7 +147,7 @@ export function SignUpFormNewSensor({onRegistrationSuccess, closeModal, objects,
                   <MenuItem disabled value="-1">
                     Выберите модель датчика
                   </MenuItem>
-                  {(typesSensors.find((sensor) => sensor.sensor_type === selectedSensorType)?.models || []).map((model) => (
+                  {(typesSensors.find((sensor) => sensor.sensor_key === selectedSensorKey)?.models || []).map((model) => (
                     <MenuItem key={model} value={model}>
                       {model}
                     </MenuItem>

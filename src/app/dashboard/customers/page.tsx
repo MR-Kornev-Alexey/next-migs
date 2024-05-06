@@ -7,19 +7,26 @@ import {CustomersFilters} from '@/components/dashboard/customer/customers-filter
 import type {Customer} from '@/components/dashboard/customer/customers-table';
 import {customersClient} from "@/lib/customers/customers-client";
 import ModalNewCustomer from "@/components/modal/modal-new-customer";
-import CustomPaginationActionsTable from "@/components/tables/customPaginationActionsTable";
 import ImportExportButtons from "@/lib/common/importExportButtons";
 import CustomTableWithoutSelect from "@/components/tables/customTableWithoutSelect";
-import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
+import SpinnerWithAlert from "@/lib/common/SpinnerWithAlert";
+import ModalDialog from "@/components/modal/modal-info-about-customer";
+import Button from '@mui/material/Button';
+import ModalAboutOneCustomer from "@/components/modal/modal-about-one-customer";
 
 export default function Page(): React.JSX.Element {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isModalInfoOpen, setIsModalInfoOpen] = useState<boolean>(false);
   const [isSelectedCustomers, setIsSelectedCustomers] = useState([]);
+  const [oneCustomer, setOneCustomer] = useState('');
   const [isMessage, setIsMessage] = React.useState<string>('');
   const [alertColor, setAlertColor] = React.useState<string>('error');
   const [page, setPage] = React.useState(0);
+  const [showChoice, setShowChoice] = useState<boolean>(false)
+
 
 
   useEffect(() => {
@@ -42,6 +49,7 @@ export default function Page(): React.JSX.Element {
       }
     }).catch((error) => {
       console.error('Ошибка при загрузке данных:', error);
+      setAlertColor("error")
       setIsMessage('Ошибка при загрузке данных:', error)
       setLoading(false); // Установка loading в false в случае ошибки
     });
@@ -53,16 +61,29 @@ export default function Page(): React.JSX.Element {
   const closeModal = () => {
     setIsModalOpen(false);
   };
+  const closeInfoModal = () => {
+    setIsModalInfoOpen(false);
+  };
   const onExportClick = () => {
     // setIsModalObjectOpen(false);
   };
   const onImportClick = () => {
     // setIsModalObjectOpen(false);
   };
-  async function onRegistrationSuccess(data) {
-    setCustomers(data.allUsers)
+
+  const deleteCustomer = (id) => {
+    alert(id)
+  };
+ async function infoAboutCustomer (row) {
+      await setOneCustomer(row)
+      await setIsModalInfoOpen(true);
+      console.log(row)
+  };
+  async function onRegistrationCustomerSuccess(allUsers) {
+    setCustomers(allUsers)
   }
   function onSelectedRowsChange(selected) {
+    setShowChoice(true)
     if(selected.length > 0) {
       setPage(0)
       setIsSelectedCustomers(selected)
@@ -70,7 +91,6 @@ export default function Page(): React.JSX.Element {
   }
   function onSelectedRowsCustomers(objects, selected) {
     if (objects?.length > 0) {
-      // setPage(0) // Передача функции setPage в дочерний компонент // Переместите эту строку перед return
       return objects.filter(obj => selected.includes(obj.organization_id));
     } else {
       return [];
@@ -78,9 +98,10 @@ export default function Page(): React.JSX.Element {
   }
 
   function restoreAllOrganization() {
-    let selected = [];
+    setShowChoice(false)
+    let selected: any = [];
     // Перебор каждого пользователя
-    customers.forEach(user => {
+    customers.forEach((user: any)  => {
       // Проверка, существует ли уже organization_id в массиве selected
       if (!selected.includes(user?.organization_id)) {
         // Если нет, добавляем его в массив selected
@@ -96,110 +117,31 @@ export default function Page(): React.JSX.Element {
       </div>
       <ImportExportButtons onExportClick={onExportClick} onImportClick={onImportClick}/>
       <CustomersFilters/>
-
-      {!loading?<Stack>
-        <svg xmlns="http://www.w3.org/2000/svg" width="4em" height="4em" viewBox="0 0 24 24">
-          <rect width={7.33} height={7.33} x={1} y={1} fill="currentColor">
-            <animate id="svgSpinnersBlocksWave0" attributeName="x" begin="0;svgSpinnersBlocksWave1.end+0.2s" dur="0.6s"
-                     values="1;4;1"></animate>
-            <animate attributeName="y" begin="0;svgSpinnersBlocksWave1.end+0.2s" dur="0.6s" values="1;4;1"></animate>
-            <animate attributeName="width" begin="0;svgSpinnersBlocksWave1.end+0.2s" dur="0.6s"
-                     values="7.33;1.33;7.33"></animate>
-            <animate attributeName="height" begin="0;svgSpinnersBlocksWave1.end+0.2s" dur="0.6s"
-                     values="7.33;1.33;7.33"></animate>
-          </rect>
-          <rect width={7.33} height={7.33} x={8.33} y={1} fill="currentColor">
-            <animate attributeName="x" begin="svgSpinnersBlocksWave0.begin+0.1s" dur="0.6s"
-                     values="8.33;11.33;8.33"></animate>
-            <animate attributeName="y" begin="svgSpinnersBlocksWave0.begin+0.1s" dur="0.6s" values="1;4;1"></animate>
-            <animate attributeName="width" begin="svgSpinnersBlocksWave0.begin+0.1s" dur="0.6s"
-                     values="7.33;1.33;7.33"></animate>
-            <animate attributeName="height" begin="svgSpinnersBlocksWave0.begin+0.1s" dur="0.6s"
-                     values="7.33;1.33;7.33"></animate>
-          </rect>
-          <rect width={7.33} height={7.33} x={1} y={8.33} fill="currentColor">
-            <animate attributeName="x" begin="svgSpinnersBlocksWave0.begin+0.1s" dur="0.6s" values="1;4;1"></animate>
-            <animate attributeName="y" begin="svgSpinnersBlocksWave0.begin+0.1s" dur="0.6s"
-                     values="8.33;11.33;8.33"></animate>
-            <animate attributeName="width" begin="svgSpinnersBlocksWave0.begin+0.1s" dur="0.6s"
-                     values="7.33;1.33;7.33"></animate>
-            <animate attributeName="height" begin="svgSpinnersBlocksWave0.begin+0.1s" dur="0.6s"
-                     values="7.33;1.33;7.33"></animate>
-          </rect>
-          <rect width={7.33} height={7.33} x={15.66} y={1} fill="currentColor">
-            <animate attributeName="x" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s"
-                     values="15.66;18.66;15.66"></animate>
-            <animate attributeName="y" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s" values="1;4;1"></animate>
-            <animate attributeName="width" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s"
-                     values="7.33;1.33;7.33"></animate>
-            <animate attributeName="height" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s"
-                     values="7.33;1.33;7.33"></animate>
-          </rect>
-          <rect width={7.33} height={7.33} x={8.33} y={8.33} fill="currentColor">
-            <animate attributeName="x" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s"
-                     values="8.33;11.33;8.33"></animate>
-            <animate attributeName="y" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s"
-                     values="8.33;11.33;8.33"></animate>
-            <animate attributeName="width" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s"
-                     values="7.33;1.33;7.33"></animate>
-            <animate attributeName="height" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s"
-                     values="7.33;1.33;7.33"></animate>
-          </rect>
-          <rect width={7.33} height={7.33} x={1} y={15.66} fill="currentColor">
-            <animate attributeName="x" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s" values="1;4;1"></animate>
-            <animate attributeName="y" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s"
-                     values="15.66;18.66;15.66"></animate>
-            <animate attributeName="width" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s"
-                     values="7.33;1.33;7.33"></animate>
-            <animate attributeName="height" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s"
-                     values="7.33;1.33;7.33"></animate>
-          </rect>
-          <rect width={7.33} height={7.33} x={15.66} y={8.33} fill="currentColor">
-            <animate attributeName="x" begin="svgSpinnersBlocksWave0.begin+0.3s" dur="0.6s"
-                     values="15.66;18.66;15.66"></animate>
-            <animate attributeName="y" begin="svgSpinnersBlocksWave0.begin+0.3s" dur="0.6s"
-                     values="8.33;11.33;8.33"></animate>
-            <animate attributeName="width" begin="svgSpinnersBlocksWave0.begin+0.3s" dur="0.6s"
-                     values="7.33;1.33;7.33"></animate>
-            <animate attributeName="height" begin="svgSpinnersBlocksWave0.begin+0.3s" dur="0.6s"
-                     values="7.33;1.33;7.33"></animate>
-          </rect>
-          <rect width={7.33} height={7.33} x={8.33} y={15.66} fill="currentColor">
-            <animate attributeName="x" begin="svgSpinnersBlocksWave0.begin+0.3s" dur="0.6s"
-                     values="8.33;11.33;8.33"></animate>
-            <animate attributeName="y" begin="svgSpinnersBlocksWave0.begin+0.3s" dur="0.6s"
-                     values="15.66;18.66;15.66"></animate>
-            <animate attributeName="width" begin="svgSpinnersBlocksWave0.begin+0.3s" dur="0.6s"
-                     values="7.33;1.33;7.33"></animate>
-            <animate attributeName="height" begin="svgSpinnersBlocksWave0.begin+0.3s" dur="0.6s"
-                     values="7.33;1.33;7.33"></animate>
-          </rect>
-          <rect width={7.33} height={7.33} x={15.66} y={15.66} fill="currentColor">
-            <animate id="svgSpinnersBlocksWave1" attributeName="x" begin="svgSpinnersBlocksWave0.begin+0.4s" dur="0.6s"
-                     values="15.66;18.66;15.66"></animate>
-            <animate attributeName="y" begin="svgSpinnersBlocksWave0.begin+0.4s" dur="0.6s"
-                     values="15.66;18.66;15.66"></animate>
-            <animate attributeName="width" begin="svgSpinnersBlocksWave0.begin+0.4s" dur="0.6s"
-                     values="7.33;1.33;7.33"></animate>
-            <animate attributeName="height" begin="svgSpinnersBlocksWave0.begin+0.4s" dur="0.6s"
-                     values="7.33;1.33;7.33"></animate>
-          </rect>
-        </svg>       {isMessage&&<Alert color={alertColor}>{isMessage}</Alert>}
-      </Stack>:
-        <CustomTableWithoutSelect
-          rows={onSelectedRowsCustomers(customers, isSelectedCustomers)}
-          openModal={openModal}
-          selectOrganization={onSelectedRowsChange}
-          restoreAllOrganization={restoreAllOrganization}
-          page={page} // Передача функции setPage в дочерний компонент
-          setPage={setPage}
-        />}
-      <ModalNewCustomer isOpen={isModalOpen} onClose={closeModal} onRegistrationSuccess={onRegistrationSuccess}/>
+      {!loading?<SpinnerWithAlert isMessage={isMessage} alertColor={alertColor} />:
+        (<Box>
+          <CustomTableWithoutSelect
+            rows={onSelectedRowsCustomers(customers, isSelectedCustomers)}
+            openModal={openModal}
+            selectOrganization={onSelectedRowsChange}
+            restoreAllOrganization={restoreAllOrganization}
+            page={page}
+            setPage={setPage}
+            deleteCustomer={deleteCustomer}
+            infoAboutCustomer={infoAboutCustomer}
+          />      <Box display="flex" justifyContent="space-around" sx={{marginTop: 3}}>
+          <Button variant="contained" onClick={openModal}>Добавить пользователя</Button>
+          {showChoice&&<Button variant="contained" onClick={restoreAllOrganization}>Сбросить выборку </Button>
+          }
+        </Box>
+          <ModalNewCustomer isOpen={isModalOpen} onClose={closeModal} onRegistrationCustomerSuccess={onRegistrationCustomerSuccess}/>
+          <ModalAboutOneCustomer isModalInfoOpen={isModalInfoOpen} onClose={closeInfoModal} oneCustomer={oneCustomer}/>
+        </Box>
+       )}
     </Stack>
   );
 }
 
 async function fetchCustomers(){
-  const result = await customersClient.getCustomers()
+  const result:any = await customersClient.getCustomers()
     return result?.data
 }

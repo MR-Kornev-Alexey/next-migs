@@ -11,7 +11,7 @@ import Alert from "@mui/material/Alert";
 function Page(): React.JSX.Element {
   const [initialData, setInitialData] = React.useState(null);
   const [statusInit, setStatusInit] = React.useState(false);
-  const [isFirst, setIsFirst] = React.useState(true);
+  const [isMain, setIsMain] = React.useState(true);
   const [isMessage, setIsMessage] = React.useState('');
   const [isError, setIsError] = React.useState(false);
 
@@ -21,7 +21,7 @@ function Page(): React.JSX.Element {
         const result = await organizationClient.checkOrganization({'inn': "7716852062"});
         if (result?.data.statusCode === 200) {
           setStatusInit(true);
-          setIsFirst(false);
+          setIsMain(false);
           setInitialData(result?.data.organization);
           setIsMessage("");
         }
@@ -39,7 +39,7 @@ function Page(): React.JSX.Element {
     if (isError) {
       return <Alert sx={{marginTop:2}} color="error">{isMessage}</Alert>;
     } else {
-      return statusInit ? <CheckOrganisation initialData={initialData}/> : <SignUpFormOrganization isFirst={isFirst} onRegistrationSuccess={handleRegistrationSuccess} />;
+      return statusInit ? <CheckOrganisation initialData={initialData}/> : <SignUpFormOrganization isMain={isMain} onRegistrationSuccess={handleRegistrationSuccess} />;
     }
   };
   const handleRegistrationSuccess = (result) => {
