@@ -16,6 +16,7 @@ export function useSelection<T = string>(keys: T[] = []): Selection<T> {
 
   React.useEffect(() => {
     setSelected(new Set());
+
   }, [keys]);
 
   const handleDeselectAll = React.useCallback(() => {

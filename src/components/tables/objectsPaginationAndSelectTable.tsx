@@ -14,12 +14,13 @@ import Checkbox from "@mui/material/Checkbox";
 import setKindOfObject from "@/lib/common/kindOfObject";
 import {TablePaginationActions} from "@/components/tables/tablePaginationActions";
 import sensors from "@/lib/common/sensors"
+import {CheckSquareOffset} from "@phosphor-icons/react";
 
 
 
 
 
-export default function ObjectsPaginationAndSelectTable({ rows }) {
+export default function ObjectsPaginationAndSelectTable({ rows, onSelectedRowsChange}) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const rowIds = React.useMemo(() => {
@@ -29,10 +30,16 @@ export default function ObjectsPaginationAndSelectTable({ rows }) {
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows =
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
+
   const { selectAll, deselectAll, selectOne, deselectOne, selected } = useSelection(rowIds);
+
+  React.useEffect(() => {
+    onSelectedRowsChange(selected ? Array.from(selected) : []);
+  }, [selected]);
 
   const selectedSome = (selected?.size ?? 0) > 0 && (selected?.size ?? 0) < rows.length;
   const selectedAll = rows.length > 0 && selected?.size === rows.length;
+
 
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
@@ -72,9 +79,8 @@ export default function ObjectsPaginationAndSelectTable({ rows }) {
             <TableCell style={{ width: "20%" }} align="center">
               Тип объекта</TableCell>
             <TableCell style={{ width: "20%" }} align="center">
-              Организация</TableCell>
-            <TableCell style={{ width: "10%" }} align="center">
-              Подробнее</TableCell>
+              Организация
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -101,16 +107,13 @@ export default function ObjectsPaginationAndSelectTable({ rows }) {
                   {row.name}
                 </TableCell>
                 <TableCell style={{ width: "20%" }} align="center">
-
+                  {row.Sensor.length}
                 </TableCell>
                 <TableCell style={{ width: "20%" }} align="center">
                   {setKindOfObject(row.objectsType)}
                 </TableCell>
                 <TableCell style={{ width: "20%" }} align="center">
                   {row.organization.name}
-                </TableCell>
-                <TableCell style={{ width: "10%" }} align="center">
-                  <UserGear size={24} />
                 </TableCell>
               </TableRow>
             );

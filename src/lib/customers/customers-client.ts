@@ -65,8 +65,6 @@ export class CustomersClient {
     }
   }
 
-
-
   async createNewCustomer(value) {
     let getEmail = await getHeaders()
     try {

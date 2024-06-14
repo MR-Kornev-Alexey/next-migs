@@ -107,7 +107,6 @@ export default function Page(): React.JSX.Element {
             </Grid>
           </Grid>
         </Stack>}
-      {isMessage && <Alert color={alertColor}>{isMessage}</Alert>}
     </Stack>
   );
 }

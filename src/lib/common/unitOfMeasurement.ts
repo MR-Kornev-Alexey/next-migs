@@ -21,21 +21,24 @@ const UnitOfMeasurement: UnitOfMeasurement = {
       model: 'РФ-251',
       name_unit: ['мм (без коэф.)', 'мкм (без коэф.)', 'кгс/кв.см (с коэф.)'],
       value: ['mm_without_coefficient',
-        'mkm_without_coefficient', 'kgf_sq_cm_with_coefficient']
+        'mkm_without_coefficient', 'kgf_sq_cm_with_coefficient'],
+      code: ['45-86', '03-86', '09-86']
     },
     {
       type: 'Тензометр',
       model: 'LS5',
       name_unit: ['мм', 'мкм', 'кгс/кв.см'],
       value: ['mm',
-        'mkm', 'kgf_sq_cm']
+        'mkm', 'kgf_sq_cm'],
+      code: ['45-86']
     },
     {
       type: 'Тензометр',
       model: 'SVWG-D01',
       name_unit: ['мм', 'мкм', 'кгс/кв.см'],
       value: ['mm',
-        'mkm', 'kgf_sq_cm']
+        'mkm', 'kgf_sq_cm'],
+      code: ['45-86']
     }
   ],
   inclinometer: [
@@ -43,7 +46,8 @@ const UnitOfMeasurement: UnitOfMeasurement = {
       type: 'Инклинометр',
       model: 'ИН-Д3',
       name_unit: ['угл.сек'],
-      value: ['angle_sec']
+      value: ['angle_sec'],
+      code: [ '7e 9b 01 29 b3 7e', '7e 9b 01 02 98 7e' ]
     }],
   rangefinder: [
     {

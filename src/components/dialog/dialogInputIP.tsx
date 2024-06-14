@@ -9,7 +9,7 @@ import Box from "@mui/material/Box";
 import {X} from "@phosphor-icons/react";
 import {sensorsClient} from "@/lib/sensors/sensors-client";
 
-export default function dialogInputIP({isOpen, handleClose, isIPAddress, setIsIPAddress,isIDSensor}) {
+export default function DialogChangeNetAddress({isOpen, handleClose, isIPAddress, setIsIPAddress, isIDSensor, setSensors }) {
   const handleInputChange = (event) => {
     setIsIPAddress(event.target.value); // Обновление значения isIPAddress при изменении содержимого поля ввода
   };
@@ -20,13 +20,13 @@ export default function dialogInputIP({isOpen, handleClose, isIPAddress, setIsIP
         onClose={handleClose}
         PaperProps={{
           component: 'form',
-          onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
+          onSubmit: async (event: React.FormEvent<HTMLFormElement>) => {
             event.preventDefault();
             const formData = new FormData(event.currentTarget);
             const formJson = Object.fromEntries((formData as any).entries());
-            const ipAddress = formJson.ipAddress;
-            const result = sensorsClient.changeIPForSensor(ipAddress,isIDSensor)
-            console.log(result);
+            const isIPAddress = formJson.isIPAddress;
+            const sensorsData: any = await sensorsClient.changeIPForSensor(isIPAddress, isIDSensor)
+            await setSensors(sensorsData?.data?.allSensors)
             handleClose();
           },
         }}
@@ -34,15 +34,15 @@ export default function dialogInputIP({isOpen, handleClose, isIPAddress, setIsIP
         <Box display="flex" alignItems="center" justifyContent="flex-end" sx={{padding:1}}>
           <X size={28} onClick={handleClose} style={{ cursor: "pointer" }} />
         </Box>
-        <DialogTitle>Введите новый IP address</DialogTitle>
+        <DialogTitle>Введите новый IP адрес </DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             required
             margin="dense"
-            id="name"
-            name="ipAddress"
-            label="IP address"
+            id="isIPAddress"
+            name="isIPAddress"
+            label="Сетевой номер"
             defaultValue={isIPAddress} // Значение по умолчанию для поля ввода
             fullWidth
             variant="standard"

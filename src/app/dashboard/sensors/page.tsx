@@ -15,6 +15,7 @@ import SpinnerWithAlert from "@/lib/common/SpinnerWithAlert";
 import DialogInputIP from "@/components/dialog/dialogInputIP";
 import ImportExportButtons from "@/lib/common/importExportButtons";
 import ModalImportSensor from "@/components/modal/modal-import-sensor";
+import DialogChangeNetAddress from "@/components/dialog/dialogInputIP";
 
 
 export default function Page(): React.JSX.Element {
@@ -27,6 +28,8 @@ export default function Page(): React.JSX.Element {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isModalImportOpen, setIsModalImportOpen] = useState<boolean>(false);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [isDialogOpenNetAddress, setIsDialogOpenNetAddress] = useState<boolean>(false);
+  const [isNetAddress, setIsNetAddress] = useState<string>('');
   const [isIPAddress, setIsIPAddress] = useState<string>('');
   const [isIDSensor, setIsIDSensor] = useState<string>('');
   const [isMessage, setIsMessage] = React.useState<string>('');
@@ -35,19 +38,24 @@ export default function Page(): React.JSX.Element {
   const [page, setPage] = React.useState<number>(0);
 
 
+
   useEffect(() => {
     setLoading(true);
     Promise.all([fetchAllSensors(), fetchAllTypeSensors(), fetchAllObjects()])
       .then(async ([sensorsData, sensorsTypeData, objectData]): any => {
         let selected = [];
+        if (sensorsTypeData?.data?.allSensors.length > 0) {
+          setTypesSensors(sensorsTypeData?.data?.allSensors)
+        }
+        if (objectData.data?.allObjects.length > 0) {
+          setObjects(objectData.data?.allObjects)
+        }
         if (sensorsData?.data?.allSensors.length > 0) {
           setSensors(sensorsData?.data?.allSensors);
-          setTypesSensors(sensorsTypeData?.data?.allSensors)
-          setObjects(objectData.data?.allObjects)
           setLoading(false);
           await restoreAllSensors(sensorsData?.data?.allSensors)
         } else {
-          setIsMessage('Ошибка при загрузке данных')
+          setIsMessage('Данные по датчикам отстутствуют. Добавьте датчик')
           setLoading(true);
         }
       })
@@ -69,9 +77,16 @@ export default function Page(): React.JSX.Element {
   const openDialog = () => {
     setIsDialogOpen(true);
   };
+
+
   const closeDialog = () => {
     setIsDialogOpen(false);
   };
+
+  const closeDialogNetAddress = () => {
+    setIsDialogOpenNetAddress(false);
+  };
+
   const onExportClick = () => {
     setIsDialogOpen(false);
   };
@@ -79,26 +94,48 @@ export default function Page(): React.JSX.Element {
     setIsModalImportOpen(true);
   };
 
-  const openDialogNewIP = (ip,id) => {
+  const openDialogNewIP = (ip, id) => {
     setIsDialogOpen(true);
     setIsIPAddress(ip)
     setIsIDSensor(id)
   };
-  const sendIDToStore=(sensorData)=>{
+  const sendIDToStore = (sensorData) => {
     localStorage.setItem("sensorData", sensorData)
     router.push("/dashboard/sensors/additional-data-sensor");
   }
+
   async function fetchAllSensors(): Promise<Customer[]> {
     return await sensorsClient.getAllSensors();
   }
 
   async function deleteOneSensor(sensor_id) {
-   // alert(sensor_id)
-    return await sensorsClient.deleteOneSensorFromApi(sensor_id);
+    // alert(sensor_id)
+    const sensorsData: any = await sensorsClient.deleteOneSensorFromApi(sensor_id);
+    setSensors(sensorsData?.data?.allSensors);
   }
+
+  async function handleChangeStatus(sensor_id) {
+    const sensorsData: any = await sensorsClient.changeStatusOneSensorFromApi(sensor_id);
+    setSensors(sensorsData?.data?.allSensors);
+  }
+
+  async function handleChangeNetAddress(network_number, sensor_id) {
+    setIsDialogOpenNetAddress(true)
+    setIsNetAddress(network_number)
+    setIsIDSensor(sensor_id)
+  }
+
+  async function  handleChangeIpAddress(ip_address, sensor_id) {
+    setIsDialogOpen(true)
+    setIsIPAddress(ip_address)
+    setIsIDSensor(sensor_id)
+  }
+
+
   async function fetchAllTypeSensors(): Promise<Customer[]> {
     return await sensorsClient.getAllTypeOfSensors();
   }
+
   async function fetchAllObjects(): Promise<Customer[]> {
     return await objectClient.getAllObjects();
   }
@@ -122,13 +159,11 @@ export default function Page(): React.JSX.Element {
 
   function selectObject(selected) {
     setShowChoice(true)
-    if(selected.length > 0) {
+    if (selected.length > 0) {
       setPage(0)
       setIsSelectedSensors(selected)
     }
   }
-
-
 
   function onSelectedRowsSensors(sensors, selected) {
     // return sensors
@@ -141,9 +176,11 @@ export default function Page(): React.JSX.Element {
 
   return (
     <Stack spacing={3}>
-      {loading?<SpinnerWithAlert isMessage={isMessage} alertColor={alertColor} />:
+      <div>
+        <Typography variant="h4">Датчики</Typography>
+      </div>
+      {loading ? <SpinnerWithAlert isMessage={isMessage} alertColor={alertColor}/> :
         <Stack>
-          <Typography sx={{marginBottom: 3}} variant="h4">Установленные датчики</Typography>
           <ImportExportButtons onExportClick={onExportClick} onImportClick={onImportClick}/>
           <SensorsPaginationAndSelectTable
             rows={onSelectedRowsSensors(sensors, isSelectedSensors)}
@@ -151,22 +188,41 @@ export default function Page(): React.JSX.Element {
             selectObject={selectObject}
             page={page}
             setPage={setPage}
-            openDialogNewIP={openDialogNewIP}
+            handleChangeIpAddress={handleChangeIpAddress}
             deleteOneSensor={deleteOneSensor}
+            handleChangeStatus={handleChangeStatus}
+            handleChangeNetAddress={handleChangeNetAddress}
           />
           <Box display="flex" justifyContent="space-around" sx={{marginTop: 3}}>
-            <Button variant="contained" onClick={openModal}>Добавить датчик на объект</Button>
-            {showChoice&&<Button variant="contained" onClick={ () => restoreAllSensors(sensors)}>Сбросить выборку</Button>
+            {showChoice &&
+              <Button variant="contained" onClick={() => restoreAllSensors(sensors)}>Сбросить выборку</Button>
             }
           </Box>
         </Stack>}
+      <Box display="flex" justifyContent="center" sx={{marginTop: 2}}>
+        <Button variant="contained" onClick={openModal}>Добавить датчик на объект</Button>
+      </Box>
+
       <ModalNewSensor isOpen={isModalOpen} onClose={closeModal}
                       onRegistrationSensorSuccess={onRegistrationSensorSuccess} typesSensors={typesSensors}
                       objects={objects}/>
       <ModalImportSensor isOpen={isModalImportOpen} onClose={closeImportModal}
-                      onRegistrationSensorSuccess={onRegistrationSensorSuccess} typesSensors={typesSensors}
-                      objects={objects}/>
-      <DialogInputIP isOpen={isDialogOpen} handleClose={closeDialog} isIPAddress={isIPAddress} setIsIPAddress={setIsIPAddress} isIDSensor={isIDSensor}/>
+                         onRegistrationSensorSuccess={onRegistrationSensorSuccess} typesSensors={typesSensors}
+                         objects={objects}/>
+      <DialogInputIP isOpen={isDialogOpen}
+                     handleClose={closeDialog}
+                     isIPAddress={isIPAddress}
+                     isIDSensor={isIDSensor}
+                     setIsIPAddress={setIsIPAddress}
+                     setSensors={setSensors}
+                     />
+      <DialogChangeNetAddress isOpen={isDialogOpenNetAddress}
+                              isIDSensor={isIDSensor}
+                              handleClose={closeDialogNetAddress}
+                              isNetAddress={isNetAddress}
+                              setIsNetNumber={setIsNetAddress}
+                              setSensors={setSensors}
+                              />
     </Stack>
   );
 }

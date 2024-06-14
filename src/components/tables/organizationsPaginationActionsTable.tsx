@@ -1,6 +1,4 @@
 import * as React from 'react';
-import {useTheme} from '@mui/material/styles';
-import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -10,12 +8,10 @@ import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import TableHead from "@mui/material/TableHead";
-import Button from "@mui/material/Button";
-import Stack from '@mui/material/Stack';
 import {TablePaginationActions} from "@/components/tables/tablePaginationActions";
 import Checkbox from "@mui/material/Checkbox";
 import {useSelection} from "@/hooks/use-selection";
-import {CheckSquareOffset, Gear} from "@phosphor-icons/react";
+import {CheckSquareOffset} from "@phosphor-icons/react";
 
 export default function OrganizationsPaginationActionsTable({rows, onSelectedRowsChange}) {
   const [page, setPage] = React.useState(0);

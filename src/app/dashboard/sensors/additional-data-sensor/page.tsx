@@ -19,9 +19,12 @@ import Alert from "@mui/material/Alert";
 import convertUnits from "@/lib/common/convertUnits";
 import {useForm} from "react-hook-form";
 import axios from "axios";
-import {FilePdf} from "@phosphor-icons/react";
+import {FilePdf, PlayPause, Siren} from "@phosphor-icons/react";
 import Link from "@mui/material/Link";
 import SpinnerWithAlert from "@/lib/common/SpinnerWithAlert";
+import ModalNewRequestDataSensor from "@/components/modal/modal-new-requst-data-sensor";
+import {Simulate} from "react-dom/test-utils";
+import error = Simulate.error;
 
 
 export default function Page(): React.JSX.Element {
@@ -29,11 +32,13 @@ export default function Page(): React.JSX.Element {
   const [isAdditionalDataOfSensor, setIsAdditionalDataOfSensor] = useState<any>([]);
   const [isLogDataOfSensor, setIsLogDataOfSensor] = useState<any>([]);
   const [isFileData, setIsFileData] = useState<any>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isRequestData, setIsRequestData] = useState<any>([]);
   const [isMessage, setIsMessage] = React.useState<string>('');
   const [alertColor, setAlertColor] = React.useState<string>('error');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isOpenRequest, setIsOpenRequest] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [file, setFile] = React.useState(null)
   const [reloadFlag, setReloadFlag] = useState(false);
 
@@ -49,16 +54,17 @@ export default function Page(): React.JSX.Element {
     setLoading(true);
     setIsMessage("");
 
+
     const fetchData = async () => {
       try {
         const result: any = await sensorsClient.getAllDataAboutOneSensor(dataOfSensor.id);
-        // Проверяем, смонтирован ли компонент
         switch (result?.data?.statusCode) {
           case 200:
             setAlertColor("success");
             setIsMessage(result?.data?.message);
             setIsAdditionalDataOfSensor(result?.data?.oneSensor?.additional_sensor_info);
             setIsLogDataOfSensor(result?.data?.oneSensor?.sensor_operation_log);
+            setIsRequestData(result?.data?.oneSensor?.requestSensorInfo)
             setIsFileData((result?.data?.oneSensor?.files));
             setLoading(false);
             break;
@@ -87,6 +93,12 @@ export default function Page(): React.JSX.Element {
   };
   const openModalNewOperationLogSensor = () => {
     setIsModalOpen(true);
+  };
+  const openModalRequestSensor = () => {
+    setIsOpenRequest(true);
+  };
+  const closeModalRequestSensor = () => {
+    setIsOpenRequest(false);
   };
   const closeModalNewAdditionalDataSensor = () => {
     setIsOpen(false);
@@ -125,13 +137,41 @@ export default function Page(): React.JSX.Element {
       console.error('Error uploading file:', error);
     }
   };
-
+  const changeSensorsWarning = async (sensor_id) => {
+    try {
+      const result: any = await sensorsClient.changeWarningSensor(sensor_id);
+      switch (result?.data?.statusCode) {
+        case 200:
+          setAlertColor("success");
+          setIsMessage(result?.data?.message);
+          setIsRequestData(result?.data?.oneSensor?.requestSensorInfo)
+          setLoading(false);
+          break;
+        case 400:
+        case 500:
+          setAlertColor("error");
+          setIsMessage(result?.data?.message);
+          break;
+        default:
+          setAlertColor("error");
+          setIsMessage(result?.error?.message || "Произошла ошибка");
+          break;
+      }
+      // setLoading(false);
+    } catch (error) {
+      console.error('Ошибка при загрузке данных:', error);
+      setIsMessage('Ошибка при загрузке данных:', error);
+      setLoading(false);
+    }
+  }
   return (
     <Stack spacing={3}>
       <div>
         <Typography variant="h4">Дополнительные данные для
           датчика: {dataOfSensor.sensor_type} | {dataOfSensor.designation}</Typography>
       </div>
+
+
       {loading ? <SpinnerWithAlert isMessage={isMessage} alertColor={alertColor}/> : <Box>
         <TableContainer component={Paper}>
           <Table sx={{minWidth: 400}} aria-label="simple table">
@@ -150,13 +190,53 @@ export default function Page(): React.JSX.Element {
                     variant="body1">{dataOfSensor.object.address} | {dataOfSensor.object.name}</Typography></TableCell>
                 <TableCell> {dataOfSensor.sensor_type}</TableCell>
                 <TableCell>{dataOfSensor.model}</TableCell>
-                <TableCell> {dataOfSensor.network_number}</TableCell>
+                <TableCell>{dataOfSensor.network_number}</TableCell>
               </TableRow>
             </TableBody>
           </Table>
         </TableContainer>
 
-        {isAdditionalDataOfSensor.length === 0 ? <Box>
+        <div>
+          <Typography variant="h5">Подключение/обнуление дачика</Typography>
+        </div>
+        <div>
+          {JSON.stringify(isRequestData[0])}
+        </div>
+        {(isRequestData.length > 0) ? <TableContainer component={Paper}>
+            <Table sx={{minWidth: 400}} aria-label="simple table">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Периодичность</TableCell>
+                  <TableCell>Код отправки</TableCell>
+                  <TableCell>Логический ноль</TableCell>
+                  <TableCell>Доп. ноль(Y)</TableCell>
+                  <TableCell>Минимум</TableCell>
+                  <TableCell>Максимум</TableCell>
+                  <TableCell>Оповещение</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                <TableRow>
+                  <TableCell>
+                    <Typography
+                      variant="body1">{isRequestData[0].periodicity} мс</Typography></TableCell>
+                  <TableCell> {isRequestData[0].request_code}</TableCell>
+                  <TableCell>{isRequestData[0].logical_zero === null ? 0 : isRequestData[0].logical_zero}</TableCell>
+                  <TableCell>{isRequestData[0].add_zero === null ? 0 : isRequestData[0].add_zero}</TableCell>
+                  <TableCell>{isRequestData[0].min === null ? 0 : isRequestData[0].min}</TableCell>
+                  <TableCell>{isRequestData[0].max === null ? 0 : isRequestData[0].max}</TableCell>
+                  <TableCell style={{cursor: "pointer"}}
+                             onClick={() => changeSensorsWarning(isRequestData[0].sensor_id)}>{isRequestData[0].warning ?
+                    <Siren size={24} color="#a00323" /> : <PlayPause size={24}/>}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer> :
+          <Box display="flex" justifyContent="space-around" sx={{marginTop: 2}}>
+            <Button variant="contained" onClick={openModalRequestSensor}>Добавить данные</Button>
+          </Box>}
+
+        {isAdditionalDataOfSensor.length === 0 ? <Box sx={{marginTop: 2}}>
           <Typography variant="h5">Для данного датчика не введены дополнительные данные</Typography>
           <Box display="flex" justifyContent="space-around" sx={{marginTop: 3}}>
             <Button variant="contained" onClick={openModalNewAdditionalDataSensor}>Добавить данные</Button>
@@ -240,6 +320,8 @@ export default function Page(): React.JSX.Element {
       </Box>
       }
       {/*{isMessage && <Alert color={alertColor}>{isMessage}</Alert>}*/}
+      <ModalNewRequestDataSensor isOpenRequest={isOpenRequest} onClose={closeModalRequestSensor}
+                                 dataOfSensor={dataOfSensor} successOfDownloadAddData={successOfDownloadAddData}/>
       <ModalNewAdditionalDataSensor isOpen={isOpen} onClose={closeModalNewAdditionalDataSensor}
                                     dataOfSensor={dataOfSensor} successOfDownloadAddData={successOfDownloadAddData}/>
       <ModalNewOperationLogSensor isOpen={isModalOpen} onClose={closeModalNewOperationLogSensor}

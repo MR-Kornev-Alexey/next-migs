@@ -6,7 +6,7 @@ import FormHelperText from '@mui/material/FormHelperText';
 import InputLabel from '@mui/material/InputLabel';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import Stack from '@mui/material/Stack';
-import { Controller, useForm } from 'react-hook-form';
+import {Controller, useForm} from 'react-hook-form';
 import {z as zod} from 'zod';
 import Box from "@mui/material/Box";
 import Select from "@mui/material/Select";
@@ -14,8 +14,8 @@ import MenuItem from "@mui/material/MenuItem";
 import Alert from "@mui/material/Alert";
 import {sensorsClient} from "@/lib/sensors/sensors-client";
 import sensors from "@/lib/common/sensors";
-import {customersClient} from "@/lib/customers/customers-client";
 
+import calculateRequestCode from "@/lib/calculate/calculate-request-code";
 
 export function SignUpFormNewSensor({onRegistrationSensorSuccess, closeModal, objects, typesSensors}): React.JSX.Element {
   const [isPending, setIsPending] = React.useState<boolean>(false);
@@ -61,7 +61,11 @@ export function SignUpFormNewSensor({onRegistrationSensorSuccess, closeModal, ob
       setIsMessage("")
       values.network_number = Number(values.network_number)
       values.sensor_type = sensors[values.sensor_key].type
-      const result:any = await sensorsClient.setNewSensorToObject(values);
+      const requestData = {
+        request_code: await calculateRequestCode(values.network_number, values.model),
+        periodicity: 10000
+      }
+      const result:any = await sensorsClient.setNewSensorToObject(values, requestData);
       switch (result?.data?.statusCode) {
         case 200:
           setAlertColor("success");

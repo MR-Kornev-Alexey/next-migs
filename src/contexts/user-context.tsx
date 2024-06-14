@@ -5,9 +5,8 @@ import * as React from 'react';
 import type { User } from '@/types/user';
 import { authClient } from '@/lib/auth/client';
 import { logger } from '@/lib/default-logger';
-import { useDispatch } from 'react-redux';
-import {setUser} from "@/store/mainUserReducer";
-import {addNotifications} from "@/store/notificationReducer";
+import {sensorsClient} from "@/lib/sensors/sensors-client";
+
 
 export interface UserContextValue {
   user: User | null;
@@ -22,11 +21,7 @@ export interface UserProviderProps {
   children: React.ReactNode;
 }
 
-function generateRandomNumber() {
-  const min = 10000000; // Минимальное значение (включительно)
-  const max = 99999999; // Максимальное значение (включительно)
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+
 
 export function UserProvider({ children }: UserProviderProps): React.JSX.Element {
   const [state, setState] = React.useState<{ user: User | null; error: string | null; isLoading: boolean }>({
@@ -34,7 +29,6 @@ export function UserProvider({ children }: UserProviderProps): React.JSX.Element
     error: null,
     isLoading: true,
   });
-  const notificationSentRef = React.useRef(false);
   const checkSession = React.useCallback(async (): Promise<void> => {
     try {
       let email
@@ -57,6 +51,7 @@ export function UserProvider({ children }: UserProviderProps): React.JSX.Element
   }, []);
 
   React.useEffect(() => {
+
     checkSession().catch((err) => {
       logger.error(err);
       // noop
