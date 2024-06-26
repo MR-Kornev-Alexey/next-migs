@@ -13,7 +13,7 @@ import {useSelection} from "@/hooks/use-selection";
 import {TablePaginationActions} from "@/components/tables/tablePaginationActions";
 import {SvgSpinnersBarsScale} from "@/lib/animated-icon/chart-icon";
 import {LineMdPlayFilledToPauseTransition} from "@/lib/animated-icon/pause-icon";
-import {PlayPause, Siren} from "@phosphor-icons/react";
+import {ClipboardText, PlayPause, Siren} from "@phosphor-icons/react";
 import {sensorsClient} from "@/lib/sensors/sensors-client";
 
 export default function AllSensorsPaginationAndSelectTable({
@@ -21,11 +21,10 @@ export default function AllSensorsPaginationAndSelectTable({
                                                              onFilterChange,
                                                              onSelectionChange,
                                                              changeFromChartsWarningSensor,
-                                                             changeFromChartsRunSensor,
                                                              setNullOneSensor,
                                                              setMinOneSensor,
                                                              setMaxOneSensor,
-                                                             changeFromChartsDesignationSensor
+                                                             openTableAdditionalInfo
                                                            }) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
@@ -33,7 +32,7 @@ export default function AllSensorsPaginationAndSelectTable({
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
   const {selectAll, deselectAll, selectOne, deselectOne, selected} = useSelection(rowIds);
-  const [checkZet, setCheckZet] =  React.useState(false);
+  const [checkZet, setCheckZet] = React.useState(false);
 
   React.useEffect(() => {
     if (onSelectionChange) {
@@ -61,7 +60,7 @@ export default function AllSensorsPaginationAndSelectTable({
     onFilterChange(filtered);
   };
 
-  const setLastValueWithNull = (baseValue, zeroValue )=> {
+  const setLastValueWithNull = (baseValue, zeroValue) => {
     return parseFloat((baseValue - zeroValue).toFixed(2)) || 0
   }
 
@@ -87,15 +86,13 @@ export default function AllSensorsPaginationAndSelectTable({
             <TableCell>Марка датчика</TableCell>
             <TableCell>Обозначение</TableCell>
             <TableCell>Активность</TableCell>
+            <TableCell>Периодичность</TableCell>
             <TableCell>Оповещение</TableCell>
             <TableCell align="center">Последнее значение (базовое)</TableCell>
             <TableCell align="center">Минимум (базовое)</TableCell>
             <TableCell align="center">Максимум (базовое)</TableCell>
             <TableCell align="center">Обнуление (базовое)</TableCell>
-            <TableCell align="center">Последнее значение Y</TableCell>
-            <TableCell align="center">Последнее значение X</TableCell>
-            {checkZet&&<TableCell align="center">Последнее значение Z</TableCell>
-            }
+            <TableCell align="center">Контроль выбросов</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -133,35 +130,28 @@ export default function AllSensorsPaginationAndSelectTable({
                 >
                   {row.model}
                 </TableCell>
-                <TableCell style={{cursor: "pointer"}}
-                           onClick={() => changeFromChartsDesignationSensor(row.id, row.designation)}>
+                <TableCell>
                   {row.designation}
                 </TableCell>
-                <TableCell align="center" style={{cursor: "pointer"}} onClick={() => changeFromChartsRunSensor(row.id)}>
+                <TableCell align="center">
                   {row.run ? <SvgSpinnersBarsScale/> : <LineMdPlayFilledToPauseTransition/>}
                 </TableCell>
+                <TableCell>{row.requestSensorInfo[0].periodicity}</TableCell>
                 <TableCell style={{cursor: "pointer"}} align="center"
                            onClick={() => changeFromChartsWarningSensor(row.id)}>{row.requestSensorInfo[0].warning ?
                   <Siren size={24} color="#a00323"/> : <PlayPause size={24}/>}</TableCell>
                 <TableCell
                   align="center">{setLastValueWithNull(row.requestSensorInfo[0].last_base_value, row.requestSensorInfo[0].base_zero)}</TableCell>
                 <TableCell style={{cursor: "pointer"}}
-                           onClick={() => setMinOneSensor(row.id,row.requestSensorInfo[0].min_base)}
-                  align="center">{row.requestSensorInfo[0].min_base === null ? 0 : row.requestSensorInfo[0].min_base}</TableCell>
+                           onClick={() => setMinOneSensor(row.id, row.requestSensorInfo[0].min_base)}
+                           align="center">{row.requestSensorInfo[0].min_base === null ? 0 : row.requestSensorInfo[0].min_base}</TableCell>
                 <TableCell style={{cursor: "pointer"}}
-                           onClick={() => setMaxOneSensor(row.id,row.requestSensorInfo[0].max_base)}
-                  align="center">{row.requestSensorInfo[0].max_base === null ? 0 : row.requestSensorInfo[0].max_base}</TableCell>
+                           onClick={() => setMaxOneSensor(row.id, row.requestSensorInfo[0].max_base)}
+                           align="center">{row.requestSensorInfo[0].max_base === null ? 0 : row.requestSensorInfo[0].max_base}</TableCell>
                 <TableCell align="center" style={{cursor: "pointer"}}
                            onClick={() => setNullOneSensor(row.id, row.requestSensorInfo[0].base_zero, row.requestSensorInfo[0].last_base_value)}>{row.requestSensorInfo[0].base_zero === null ? 0 : row.requestSensorInfo[0].base_zero}</TableCell>
-
-                <TableCell
-                  align="center">{row.requestSensorInfo[0].last_valueY === null ? 0 : row.requestSensorInfo[0].last_valueY}</TableCell>
-                <TableCell
-                  align="center">{row.requestSensorInfo[0].last_valueX === null ? 0 : row.requestSensorInfo[0].last_valueX}</TableCell>
-                {checkZet&&<TableCell
-                  align="center">{row.requestSensorInfo[0].last_valueZ === null ? 0 : row.requestSensorInfo[0].last_valueZ}</TableCell>
-                }
-    </TableRow>
+                <TableCell align="center" style={{cursor: "pointer"}}><ClipboardText size={24} onClick={()=> openTableAdditionalInfo(row.object_id, row.model)} /></TableCell>
+              </TableRow>
             );
           })}
           {emptyRows > 0 && (

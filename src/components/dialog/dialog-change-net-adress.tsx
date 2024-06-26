@@ -9,9 +9,9 @@ import Box from "@mui/material/Box";
 import {X} from "@phosphor-icons/react";
 import {sensorsClient} from "@/lib/sensors/sensors-client";
 
-export default function DialogChangeNetAddress({isOpen, handleClose, isIPAddress, setIsIPAddress, isIDSensor, sendUpdatedSensor }) {
+export default function DialogChangeNetAddress({isOpen, handleClose, isNetAddress, setIsNetAddress, isIDSensor, sendUpdatedSensor }) {
   const handleInputChange = (event) => {
-    setIsIPAddress(event.target.value); // Обновление значения isIPAddress при изменении содержимого поля ввода
+    setIsNetAddress(event.target.value); // Обновление значения isIPAddress при изменении содержимого поля ввода
   };
   return (
     <React.Fragment>
@@ -24,8 +24,8 @@ export default function DialogChangeNetAddress({isOpen, handleClose, isIPAddress
             event.preventDefault();
             const formData = new FormData(event.currentTarget);
             const formJson = Object.fromEntries((formData as any).entries());
-            const isIPAddress = formJson.isIPAddress;
-            const sensorsData: any = await sensorsClient.changeIPForSensor(isIPAddress, isIDSensor)
+            const isNetAddress = formJson.isNetAddress;
+            const sensorsData: any = await sensorsClient.changeNetAddressSensor(isNetAddress, isIDSensor)
             await sendUpdatedSensor(sensorsData?.data?.oneSensor)
             handleClose();
           },
@@ -34,16 +34,16 @@ export default function DialogChangeNetAddress({isOpen, handleClose, isIPAddress
         <Box display="flex" alignItems="center" justifyContent="flex-end" sx={{padding:1}}>
           <X size={28} onClick={handleClose} style={{ cursor: "pointer" }} />
         </Box>
-        <DialogTitle>Введите новый IP адрес</DialogTitle>
+        <DialogTitle>Введите новый сетевой адрес</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             required
             margin="dense"
-            id="isIPAddress"
-            name="isIPAddress"
+            id="isNetAddress"
+            name="isNetAddress"
             label="Сетевой номер"
-            defaultValue={isIPAddress} // Значение по умолчанию для поля ввода
+            defaultValue={isNetAddress} // Значение по умолчанию для поля ввода
             fullWidth
             variant="standard"
             onChange={handleInputChange} //

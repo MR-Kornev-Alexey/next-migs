@@ -70,7 +70,7 @@ export function SignUpFormNewSensor({onRegistrationSensorSuccess, closeModal, ob
         case 200:
           setAlertColor("success");
           setIsMessage(result?.data?.message);
-          onRegistrationSensorSuccess(result?.data);
+          onRegistrationSensorSuccess(result?.data.allSensors);
           setTimeout(() => {
             closeModal(false);
           }, 2000);
@@ -116,7 +116,7 @@ export function SignUpFormNewSensor({onRegistrationSensorSuccess, closeModal, ob
                 <Select
                   {...field}
                   labelId="select-label"
-                  label="Выберите вариант"
+                  label="Выберите тип датчика"
                   onChange={(e) => {
                     const selectedKey = e.target.value;
                     setSelectedSensorKey(selectedKey); // Здесь сохраняем выбранный тип датчика

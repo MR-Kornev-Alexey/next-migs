@@ -1,7 +1,10 @@
-'use client';
-import {createSlice, PayloadAction} from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-const initialState: { value: any[] } = {
+interface ObjectState {
+  value: any[];
+}
+
+const initialState: ObjectState = {
   value: []
 };
 
@@ -9,11 +12,12 @@ const objectSlice = createSlice({
   name: 'objects',
   initialState,
   reducers: {
-    addObjects(state, action: PayloadAction<any>) {
-      state.value.push(action.payload);
+    addObjects(state, action: PayloadAction<any[]>) {
+      state.value = action.payload; // Заменяем текущие объекты на новые
     },
   },
 });
 
-export const {  addObjects } = objectSlice.actions;
+export const { addObjects } = objectSlice.actions;
 export default objectSlice.reducer;
+

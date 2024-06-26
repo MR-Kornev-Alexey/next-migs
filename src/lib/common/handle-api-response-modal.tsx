@@ -1,9 +1,10 @@
-const handleApiResponse = ({ result, successCallback, setAlertColor, setIsMessage }) => {
+const handleApiResponseModal = ({ result, successCallback, setAlertColor, setIsMessage, closeModal }) => {
   switch (result?.data?.statusCode) {
     case 200:
       setAlertColor('success');
       setIsMessage(result?.data?.message);
       successCallback(result);
+      closeModal(false)
       break;
     case 400:
     case 500:
@@ -17,4 +18,4 @@ const handleApiResponse = ({ result, successCallback, setAlertColor, setIsMessag
   }
 };
 
-export default handleApiResponse;
+export default handleApiResponseModal;

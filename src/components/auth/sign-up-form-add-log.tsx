@@ -13,30 +13,30 @@ import {z as zod} from 'zod';
 import Box from "@mui/material/Box";
 import {sensorsClient} from "@/lib/sensors/sensors-client";
 import Alert from "@mui/material/Alert";
-import { MuiFileInput } from 'mui-file-input'
-import {handleResponse} from "@/lib/common/handleResponse";
 
 
-export function SignUpFormAddLog({closeModal, dataOfSensor, successOfDownload}): React.JSX.Element {
+
+export function SignUpFormAddLog({
+                                   sensorMain, dataOfSensor,
+                                   alertModalColor, successOfDownload, modalMessage
+                                 }): React.JSX.Element {
   const [isPending, setIsPending] = React.useState<boolean>(false);
-  const [isMessage, setIsMessage] = React.useState<string>('');
-  const [alertColor, setAlertColor] = React.useState<string>('');
 
   type Values = zod.infer<typeof schema>;
 
   const defaultValues = {
-    sensor_id: dataOfSensor.id,
-    passport_information: "",
-    verification_information: "",
-    warranty_Information: "",
-    sensorOperationLogNotation: "",
+    sensor_id: sensorMain.id,
+    passport_information: dataOfSensor?.passport_information,
+    verification_information: dataOfSensor?.verification_information,
+    warranty_information: dataOfSensor?.warranty_information,
+    sensorOperationLogNotation: dataOfSensor?.sensorOperationLogNotation
   } satisfies Values;
 
   const schema = zod.object({
       sensor_id: zod.string(),
       passport_information: zod.string().min(1, {message: 'Ввод информации о паспорте обязателен'}),
       verification_information: zod.string().min(1, {message: 'Ввод  информации о поверке обязательна'}),
-      warranty_Information: zod.string().min(1, {message: 'Ввод  информации о гарентии обязательна'}),
+      warranty_information: zod.string().min(1, {message: 'Ввод  информации о гарентии обязательна'}),
       sensorOperationLogNotation: zod.string()
     }
   );
@@ -51,50 +51,18 @@ export function SignUpFormAddLog({closeModal, dataOfSensor, successOfDownload}):
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
       setIsPending(true);
-      setIsMessage("")
       const result: any = await sensorsClient.addLogDataForSensor(values);
-      switch (result?.data?.statusCode) {
-        case 200:
-          setAlertColor("success");
-          setIsMessage(result?.data?.message);
-          successOfDownload(result?.data?.oneSensor)
-          setTimeout(() => {
-            closeModal(false);
-          }, 2000);
-          break;
-        case 400:
-        case 500:
-          setAlertColor("error");
-          setIsMessage(result?.data?.message);
-          break;
-        default:
-          // Обрабатываем ошибку
-          setAlertColor("error");
-          setIsMessage(result?.error?.message || "Произошла ошибка");
-          break;
-      }
+      successOfDownload(result, 'operationLog')
       setIsPending(false);
     },
     []
-  );
-
-  const onSubmitOld = React.useCallback(
-    async (values: Values): Promise<void> => {
-      setIsPending(true); // Устанавливаем флаг ожидания отправки данных
-      setIsMessage(""); // Очищаем сообщение
-      // Создаем форму для отправки на бэкэнд
-      const result: any = await sensorsClient.addLogDataForSensor(values);
-      handleResponse(result, setAlertColor, setIsMessage, closeModal, successOfDownload);
-      setIsPending(false); // Сбрасываем флаг ожидания
-    },
-    [setIsPending, setIsMessage, closeModal]
   );
 
   return (
     <Stack spacing={3}>
       <Stack spacing={1}>
         <Typography variant="h5">Добавление данных журналов для
-          датчика:<br/>{dataOfSensor.sensor_type} | {dataOfSensor.designation}</Typography>
+          датчика:<br/>{sensorMain.sensor_type} | {sensorMain.designation}</Typography>
       </Stack>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
@@ -105,7 +73,8 @@ export function SignUpFormAddLog({closeModal, dataOfSensor, successOfDownload}):
               <FormControl error={Boolean(errors.passport_information)}>
                 <InputLabel>Введите информацию о паспорте</InputLabel>
                 <OutlinedInput {...field} label="Введите информацию о паспорте"/>
-                {errors.passport_information ? <FormHelperText>{errors.passport_information.message}</FormHelperText> : null}
+                {errors.passport_information ?
+                  <FormHelperText>{errors.passport_information.message}</FormHelperText> : null}
               </FormControl>
             )}
           />
@@ -123,12 +92,13 @@ export function SignUpFormAddLog({closeModal, dataOfSensor, successOfDownload}):
           />
           <Controller
             control={control}
-            name="warranty_Information"
+            name="warranty_information"
             render={({field}) => (
-              <FormControl error={Boolean(errors.warranty_Information)}>
+              <FormControl error={Boolean(errors.warranty_information)}>
                 <InputLabel>Введите информацию о гарантии</InputLabel>
                 <OutlinedInput {...field} label="Введите информацию о гарантии"/>
-                {errors.warranty_Information ? <FormHelperText>{errors.warranty_Information.message}</FormHelperText> : null}
+                {errors.warranty_information ?
+                  <FormHelperText>{errors.warranty_information.message}</FormHelperText> : null}
               </FormControl>
             )}
           />
@@ -159,7 +129,7 @@ export function SignUpFormAddLog({closeModal, dataOfSensor, successOfDownload}):
             </Box>
             }
           </Button>
-          {isMessage && <Alert color={alertColor}>{isMessage}</Alert>}
+          {modalMessage && <Alert color={alertModalColor}>{modalMessage}</Alert>}
         </Stack>
       </form>
     </Stack>

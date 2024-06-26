@@ -5,7 +5,15 @@ import {X} from "@phosphor-icons/react";
 import Stack from "@mui/material/Stack";
 import {SignUpFormAddLog} from "@/components/auth/sign-up-form-add-log";
 
-const ModalNewOperationLogSensor: React.FC = ({ isOpen, onClose, dataOfSensor, successOfDownloadLogData}) => {
+const ModalNewOperationLogSensor: React.FC = ({
+                                                isOpen,
+                                                onClose,
+                                                sensorMain,
+                                                dataOfSensor,
+                                                alertModalColor,
+                                                modalMessage,
+                                                successOfDownloadLogData
+                                              }) => {
   return (
     <Box>
       <Modal
@@ -27,12 +35,14 @@ const ModalNewOperationLogSensor: React.FC = ({ isOpen, onClose, dataOfSensor, s
           p: 4
         }}>
 
-          <Stack id="modal-modal-title"  sx={{marginBottom:3}}>
+          <Stack id="modal-modal-title" sx={{marginBottom: 3}}>
             <Box display="flex" alignItems="center" justifyContent="flex-end">
-              <X size={32} onClick={onClose} style={{ cursor: "pointer" }} />
+              <X size={32} onClick={onClose} style={{cursor: "pointer"}}/>
             </Box>
           </Stack>
-          <SignUpFormAddLog  closeModal={onClose} dataOfSensor={dataOfSensor} successOfDownload={successOfDownloadLogData}/>
+          <SignUpFormAddLog alertModalColor={alertModalColor}
+                            modalMessage={modalMessage} dataOfSensor={dataOfSensor} sensorMain={sensorMain}
+                            successOfDownload={successOfDownloadLogData}/>
         </Box>
       </Modal>
     </Box>

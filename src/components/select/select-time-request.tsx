@@ -34,7 +34,7 @@ export default function SelectTimeRequest({ setNumberToParent, defaultValueTimeR
 
   return (
     <Box sx={{ my: 2, minWidth: 260, flexDirection: 'column' }} display="flex" justifyContent="center">
-      <FormControl sx={{ width: 260, my: 2 }}>
+      <FormControl sx={{ width: '100%', my: 2 }} fullWidth>
         <InputLabel id="period-select-label">Периодичность(мс)</InputLabel>
         <Select
           labelId="period-select-label"

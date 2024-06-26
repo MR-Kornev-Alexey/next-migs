@@ -20,15 +20,9 @@ import formatDateTime from "@/lib/common/formatDateTime";
 import getRandomColor from "@/lib/calculate/get-random-сolor";
 import ModalLoading from "@/components/modal/modal-loading";
 import Button from "@mui/material/Button";
-import {useSelector} from "react-redux";
-import {RootState} from "@/store/store";
 import Sensor from "@/types/sensor"
 import {Alert, Grid} from "@mui/material";
-import SelectTimePeriod from "@/components/select/select-time-period";
-import SelectTimeRequest from "@/components/select/select-time-request";
-import {sensorsClient} from "@/lib/sensors/sensors-client";
-import handleApiResponse from "@/lib/common/handle-api-response";
-import handleApiError from "@/lib/common/handle-api-error";
+
 
 interface Sensor {
   requestSensorInfo: {
@@ -76,7 +70,7 @@ export default function Page(): React.JSX.Element {
   const processData = useCallback((receivedData) => {
     setGroupedData((prevGroupedData) => {
       const sensor = prevGroupedData.find(s => s.sensor_id === receivedData.sensor_id);
-          console.log('sensor ----', sensor)
+      console.log('sensor ----', sensor)
       if (sensor) {
         console.log('Sensor найден');
         let newData;
@@ -173,6 +167,7 @@ export default function Page(): React.JSX.Element {
                               sendCategories={setCategories}
                               setNamesChart={setNamesChart}
                               setBarChart={setBarChart}
+                              setGroupedData={setGroupedData}
                               ref={childRef}/>
         <Box>
           {barChart.length > 0 &&
@@ -183,7 +178,8 @@ export default function Page(): React.JSX.Element {
           <Grid container spacing={2} sx={{marginTop: 2}}>
             <Grid item xs={12} md={6}>
               {seriesData.length > 0 &&
-                <Button variant="contained" sx={{width: 220, marginY: 2}} onClick={() => toggleShowCharts()}>{isShowCharts ?
+                <Button variant="contained" sx={{width: 220, marginY: 2}}
+                        onClick={() => toggleShowCharts()}>{isShowCharts ?
                   <span>Скрыть графики</span> :
                   <span>Отобразить графики</span>}</Button>
               }

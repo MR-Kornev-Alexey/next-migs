@@ -19,14 +19,12 @@ import transformData from "@/lib/calculate/transform-data-for-chart";
 import {sensorsClient} from "@/lib/sensors/sensors-client";
 import ModalLoading from "@/components/modal/modal-loading";
 import ModalInputNumber from "@/components/modal/modal-input-number";
-import ModalInputString from "@/components/modal/modal-input-string";
-import SelectTimeRequest from "@/components/select/select-time-request";
-import {util} from "zod";
-import find = util.find;
 import {AppDispatch} from "@/store/store";
 import {useDispatch} from "react-redux";
 import {addSensors} from "@/store/sensorsReducer";
-import {setZeroTrue} from "@/store/setZeroReducer";
+import SelectObjectModal from "@/components/modal/select-object-modal";
+import SelectObjectAndTypeOfSensorsModal from "@/components/modal/select-object-and-sensors-modal";
+import EmissionResultModal from "@/components/modal/emission-result-modal";
 
 
 interface Sensor {
@@ -47,11 +45,10 @@ interface SelectSensorsForShowProps {
 }
 
 const SelectSensorsForShow = forwardRef((props: SelectSensorsForShowProps, ref) => {
-  const {sendGroupedData, sendCategories, setNamesChart, setBarChart} = props;
+  const {sendGroupedData, sendCategories, setNamesChart, setBarChart, setGroupedData} = props;
   const dispatch: AppDispatch = useDispatch();
-  const allSensors = useSelector((state: RootState) => state.allSensors.value[0]);
-  const allObjects = useSelector((state: RootState) => state.allObjects.value[0]);
-  const setZero = useSelector((state: RootState) => state.setZero.value);
+  const allSensors = useSelector((state: RootState) => state.allSensors.value);
+  const allObjects = useSelector((state: RootState) => state.allObjects.value);
   const [filteredSensors, setFilteredSensors] = useState([]);
   const [selectedSensors, setSelectedSensors] = useState([]);
   const [showButton, setShowButton] = useState<boolean>(false);
@@ -62,13 +59,18 @@ const SelectSensorsForShow = forwardRef((props: SelectSensorsForShowProps, ref) 
   const [dialogsMessage, setDialogsMessage] = useState('');
   const [isMessage, setIsMessage] = useState<string>('');
   const [alertColor, setAlertColor] = useState<string>('error');
-  const [loading, setLoading] = useState<boolean>(false);
   const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
   const [isOpenModalNumber, setIsOpenModalNumber] = useState<boolean>(false);
+  const [isOpenModalSelectObject, setIsOpenModalSelectObject] = useState<boolean>(false);
+  const [isOpenModalSelectObjectAndTypes, setIsOpenModalSelectObjectAndTypes] = useState<boolean>(false);
+  const [isOpenEmissionResult, setIsOpenEmissionResult] = useState<boolean>(false);
+  const [isFlagForOneObject, setIsFlagForOneObject] = useState<string>('');
+  const [isTitleModalSelectObject, setTitleModalSelectObject] = useState<string>('');
   const [isInputValue, setIsInputValue] = useState<string>('');
-  const [isOpenStringValue, setIsOpenStringValue] = useState<boolean>(false);
   const [isIdChangeSensor, setIdChangeSensor] = useState<string>('');
   const [flagValue, setFlagValue] = useState<string>('');
+  const [selectedObject, setSelectedObject] = useState<string>('');
+  const [selectedModel, setSelectedModel] = useState<string>('');
 
 
   const onClose = () => {
@@ -77,10 +79,17 @@ const SelectSensorsForShow = forwardRef((props: SelectSensorsForShowProps, ref) 
   const onCloseModalNumber = () => {
     setIsOpenModalNumber(false)
   }
-  const onCloseStringValue = () => {
-    setIsOpenStringValue(false)
+
+  const onCloseSelectObject = () => {
+    setIsOpenModalSelectObject(false)
+  }
+  const onCloseSelectObjectAndTypes = () => {
+    setIsOpenModalSelectObjectAndTypes(false)
   }
 
+  const onCloseEmissionResult = () => {
+    setIsOpenEmissionResult(false)
+  }
   async function onSelectedRowsChange(selected) {
     // console.log(selected)
     setShowButton(false)
@@ -98,7 +107,6 @@ const SelectSensorsForShow = forwardRef((props: SelectSensorsForShowProps, ref) 
     setShowButton(true)
   };
   const handleSelectionChange = (selected) => {
-    console.log('SelectedRows - ', selected)
     setSelectedRows(selected);
   };
 
@@ -107,7 +115,6 @@ const SelectSensorsForShow = forwardRef((props: SelectSensorsForShowProps, ref) 
   }
 
   const createDataForHistogram = (inputArray) => {
-    console.log("createDataForHistogram ----", inputArray)
     const data = inputArray.map(item => item.histogramValue);
     const names = inputArray.map(item => item.name);
 
@@ -116,8 +123,6 @@ const SelectSensorsForShow = forwardRef((props: SelectSensorsForShowProps, ref) 
       name: "",
       data: data
     };
-    console.log("names ----", names)
-    console.log("series ----", [series])
     setNamesChart(names)
     const x = [{
       name: '',
@@ -126,40 +131,6 @@ const SelectSensorsForShow = forwardRef((props: SelectSensorsForShowProps, ref) 
     setBarChart([series])
   }
 
-
-  const sendChangeTimeRequestToApi = async () => {
-    try {
-      setLoading(true);
-      const sendData = {
-        periodicity: defaultValueTimeRequest
-      }
-      const result: any = await sensorsClient.changeTimeRequest(sendData);
-      console.log(result)
-      switch (result?.data?.statusCode) {
-        case 200:
-          setAlertColor("success");
-          setIsMessage(result?.data?.message);
-          setLoading(false);
-          setTimeout(() => {
-            setIsMessage('');
-          }, 2000);
-          break;
-        case 400:
-        case 500:
-          setAlertColor("error");
-          setIsMessage(result?.data?.message || "Произошла ошибка");
-          break;
-        default:
-          setAlertColor("error");
-          setIsMessage(result?.error?.message || "Произошла ошибка");
-          break;
-      }
-    } catch (error) {
-      setAlertColor("error");
-      console.error('Ошибка при изменении данных:', error);
-      setIsMessage('Ошибка при изменении данных:', error);
-    }
-  }
   const sendRequestToApi = async () => {
     if (selectedRows.length === 0) {
       setOpenDialog(true)
@@ -171,7 +142,6 @@ const SelectSensorsForShow = forwardRef((props: SelectSensorsForShowProps, ref) 
         setDialogsMessage('Для получения данных выберите хотя бы один период')
       } else {
         try {
-          setLoading(true);
           const sendData = {
             period: isPeriod,
             sensorIds: sensorIds
@@ -181,7 +151,6 @@ const SelectSensorsForShow = forwardRef((props: SelectSensorsForShowProps, ref) 
             case 200:
               setAlertColor("success");
               setIsMessage(result?.data?.message);
-              setLoading(false);
               setTimeout(() => {
                 setIsMessage('');
               }, 2000);
@@ -211,23 +180,10 @@ const SelectSensorsForShow = forwardRef((props: SelectSensorsForShowProps, ref) 
       }
     }
   }
-  const changeOneSensorsData = (data) => {
-    setFilteredSensors((filteredSensors) => {
-      const newFilteredSensors = [...filteredSensors];
-      const sensorIndex = newFilteredSensors.findIndex(s => s.id === data.id);
-      if (sensorIndex !== -1) {
-        newFilteredSensors[sensorIndex] = data;
-      } else {
-        console.log(`Sensor with id=${data.sensor_id} not found`);
-      }
-      console.log('newFilteredSensors', newFilteredSensors);
-      return newFilteredSensors;
-    });
-  }
+
 
   useImperativeHandle(ref, (data) => ({
     customMethod: (data) => {
-      console.log('Custom method called!', data);
       const newData = [data]
       setNewRequestData(newData)
     }
@@ -236,10 +192,6 @@ const SelectSensorsForShow = forwardRef((props: SelectSensorsForShowProps, ref) 
     console.log(`Sensor data ----`, data);
     setFilteredSensors((filteredSensors) => {
       const newFilteredSensors = [...filteredSensors];
-      // Логируем все sensor_id в newFilteredSensors
-      // newFilteredSensors.forEach((sensor, index) => {
-      //   console.log(`Sensor ${index}: id=${sensor.id}, requestSensorInfo=${sensor.requestSensorInfo[0].warning}`);
-      // });
       const sensorIndex = newFilteredSensors.findIndex(s => s.id === data[0].sensor_id);
       if (sensorIndex !== -1) {
         const updatedSensor = {...newFilteredSensors[sensorIndex]};
@@ -250,7 +202,6 @@ const SelectSensorsForShow = forwardRef((props: SelectSensorsForShowProps, ref) 
       } else {
         console.log(`Sensor with id=${data.sensor_id} not found test`);
       }
-      // console.log('newFilteredSensors', newFilteredSensors);
       return newFilteredSensors;
     });
   };
@@ -284,6 +235,11 @@ const SelectSensorsForShow = forwardRef((props: SelectSensorsForShowProps, ref) 
   const setMaxOneSensor = async (sensor_id, value) => {
     await setSensorValue(sensor_id, value, 'max');
   }
+  const openTableAdditionalInfo = async (object_id, model) => {
+    setIsOpenEmissionResult(true)
+    setSelectedObject(object_id)
+    setSelectedModel(model)
+  }
 
   const handleApiResponse = (result, successCallback) => {
     switch (result?.data?.statusCode) {
@@ -311,37 +267,6 @@ const SelectSensorsForShow = forwardRef((props: SelectSensorsForShowProps, ref) 
     setIsOpenModal(false);
   };
 
-  const changeFromChartsRunSensor = async (sensor_id) => {
-    setIsOpenModal(true);
-    try {
-      const result = await sensorsClient.changeStatusOneSensorFromApi(sensor_id);
-      handleApiResponse(result, (result) => {
-        changeOneSensorsData(result?.data?.oneSensor);
-      });
-    } catch (error) {
-      handleApiError(error);
-    }
-  };
-
-  const changeFromChartsDesignationSensor = async (sensor_id, value) => {
-    setIdChangeSensor(sensor_id);
-    setIsInputValue(value);
-    setIsOpenStringValue(true);
-    setFlagValue('designation');
-  };
-
-  const sendStringValueToParent = async (stringValue) => {
-    setIsOpenModal(true);
-    try {
-      const result = await sensorsClient.changeDesignationOneSensorFromApi(isIdChangeSensor, stringValue);
-      handleApiResponse(result, (result) => {
-        changeOneSensorsData(result?.data?.oneSensor);
-      });
-    } catch (error) {
-      handleApiError(error);
-    }
-  }
-
   const sendValueToParent = async (convertValue) => {
     setIsOpenModal(true);
     try {
@@ -368,33 +293,76 @@ const SelectSensorsForShow = forwardRef((props: SelectSensorsForShowProps, ref) 
       handleApiError(error);
     }
   };
-  const setNullForAllCharts = async () => {
 
+  const settingParameters = async () => {
+    setIsOpenModalSelectObjectAndTypes(true)
+  }
+
+  const sendChangeDataForModelOnObject = async (data) => {
+    onCloseSelectObjectAndTypes(false)
+    setFilteredSensors([])
+    setGroupedData([])
+    setBarChart([])
+    setSelectedObject(data.object_id)
+    console.log('data.object_id   ---', data.object_id)
     try {
-      const result = await sensorsClient.changeNullForAllCharts(setZero);
-
+      const result = await sensorsClient.changeDataForEmissionProcessing(data);
       handleApiResponse(result, (result) => {
         console.log('result -----', result.data)
         dispatch(addSensors(result.data.allSensors));
-        if(setZero){
-          dispatch(setZeroTrue(false));
-        } else {
-          dispatch(setZeroTrue(true));
-        }
       });
     } catch (error) {
       handleApiError(error);
     }
   }
+  const sendChangeNullsForObject = async (id) => {
+    setIsOpenModalSelectObject(false)
+    setFilteredSensors([])
+    setGroupedData([])
+    setBarChart([])
+    try {
+      const result = await sensorsClient.changeNullOrPeriodForOneSensor(id, isFlagForOneObject, defaultValueTimeRequest);
+      handleApiResponse(result, (result) => {
+        console.log('result -----', result.data)
+        dispatch(addSensors(result.data.allSensors));
+      });
+    } catch (error) {
+      handleApiError(error);
+    }
+  }
+  const setIdForOneObject = (flag) => {
+    setIsOpenModalSelectObject(true)
+    setIsFlagForOneObject(flag)
+    if(flag ==='period') {
+      setTitleModalSelectObject('Выберите объект и периодичность опроса')
+    } else{
+      setTitleModalSelectObject('Выберите объект для установки нуля')
+    }
+  }
+
   return (
     <Stack spacing={3}>
       <Box>
-        <Typography variant="h6">Выберите объект{setZero ? <span>1</span> : <span>2</span>}</Typography>
+        <Typography variant="h6">Выберите объект</Typography>
       </Box>
       <ObjectsPaginationAndSelectTable rows={allObjects} onSelectedRowsChange={onSelectedRowsChange}/>
-      <Box display="flex" justifyContent="center">
-        {showButton && <Button variant="contained" onClick={resetAllSelect} sx={{width: 220}}>Очистить выборку</Button>}
-      </Box>
+      <Grid container spacing={2} sx={{marginY: 2}}>
+        <Grid item xs={12} md={4} display='flex' justifyContent='center'>
+          <Button variant="contained" sx={{width: 220}} onClick={() => setIdForOneObject("null")}>Установка/сброс
+            нуля для объектов</Button>
+        </Grid>
+        <Grid item xs={12} md={4} display='flex' justifyContent='center'>
+        <Button variant="contained"  onClick={() => setIdForOneObject("period")} sx={{width: 220}} >Изменить
+          периодичность опроса для объекта</Button>
+        </Grid>
+        <Grid item xs={12} md={4} display='flex' justifyContent='center'>
+          <Button variant="contained" sx={{width: 220}} onClick={() => settingParameters()}>Управление
+            опросом для объекта </Button>
+        </Grid>
+        <Grid item xs={12} md={12} display='flex' justifyContent='center' sx={{marginTop:2}}>
+          {showButton && <Button variant="contained" onClick={resetAllSelect} sx={{width: 220}}>Очистить выборку</Button>}
+        </Grid>
+      </Grid>
       {filteredSensors.length !== 0 &&
         <Box>
           <Box>
@@ -403,36 +371,18 @@ const SelectSensorsForShow = forwardRef((props: SelectSensorsForShowProps, ref) 
           <AllSensorsPaginationAndSelectTable rows={filteredSensors} onFilterChange={handleFilterChange}
                                               onSelectionChange={handleSelectionChange}
                                               changeFromChartsWarningSensor={changeFromChartsWarningSensor}
-                                              changeFromChartsRunSensor={changeFromChartsRunSensor}
                                               setNullOneSensor={setNullOneSensor}
                                               setMinOneSensor={setMinOneSensor}
                                               setMaxOneSensor={setMaxOneSensor}
-                                              changeFromChartsDesignationSensor={changeFromChartsDesignationSensor}
+                                              openTableAdditionalInfo={openTableAdditionalInfo}
           />
           <Grid container spacing={2} sx={{marginTop: 2}}>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={4}>
               <Box>
-                <Typography variant="h6" sx={{my: 2}}>Выбрать период</Typography>
+                <Typography variant="h6" sx={{my: 2}}>Для построения графиков выбрать период</Typography>
                 <SelectTimePeriod setPeriodToParent={setIsPeriod} sx={{my: 2}}/>
                 <Button variant="contained" onClick={sendRequestToApi} sx={{width: 220}}>Загрузить</Button>
               </Box>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Box>
-                <Typography variant="h6" sx={{my: 2}}>Изменить периодичность опроса дачиков</Typography>
-                <SelectTimeRequest setNumberToParent={setDefaultValueTimeRequest}
-                                   defaultValueTimeRequest={defaultValueTimeRequest} sx={{my: 2}}/>
-                <Button variant="contained" onClick={sendChangeTimeRequestToApi} sx={{width: 220}}>Изменить</Button>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Button variant="contained" sx={{width: 220, marginY: 2}} onClick={() => setNullForAllCharts()}>{setZero ?
-                <span>Сбросить ноль</span> :
-                <span>Выставить  ноль</span>}</Button>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Button variant="contained" sx={{width: 220, marginY: 2}} onClick={() => setNullForAllCharts()}>Управление
-                опросом</Button>
             </Grid>
           </Grid>
         </Box>
@@ -443,8 +393,10 @@ const SelectSensorsForShow = forwardRef((props: SelectSensorsForShowProps, ref) 
       <ModalInputNumber isOpen={isOpenModalNumber} onClose={onCloseModalNumber} filteredSensors={filteredSensors}
                         isIdChangeSensor={isIdChangeSensor}
                         isNumberValue={isInputValue} flagValue={flagValue} sendValueToParent={sendValueToParent}/>
-      <ModalInputString isOpen={isOpenStringValue} onClose={onCloseStringValue} isStringValue={isInputValue}
-                        flagValue={flagValue} sendValueToParent={sendStringValueToParent}/>
+      <SelectObjectModal isOpen={isOpenModalSelectObject} onClose={onCloseSelectObject} title={isTitleModalSelectObject}
+                         sendChangeNullsForObject={sendChangeNullsForObject} isFlagForOneObject={isFlagForOneObject} defaultValueTimeRequest={defaultValueTimeRequest} setDefaultValueTimeRequest={setDefaultValueTimeRequest}/>
+      <SelectObjectAndTypeOfSensorsModal isOpen={isOpenModalSelectObjectAndTypes} onClose={onCloseSelectObjectAndTypes} sendChangeDataForModelOnObject={sendChangeDataForModelOnObject} />
+      <EmissionResultModal isOpen={isOpenEmissionResult} onClose={onCloseEmissionResult} idObject={selectedObject} allObjects={allObjects} allSensors={allSensors} model={selectedModel}/>
     </Stack>
   )
 });

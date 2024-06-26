@@ -36,20 +36,22 @@ export class SensorsClient {
       return {error: error.message};
     }
   }
+
   async changeTimeRequest(sendData) {
-    let getEmail:string = (await getHeaders()).email
+    let getEmail: string = (await getHeaders()).email
     try {
-      sendData.email =  getEmail
+      sendData.email = getEmail
       return await axios.post(
         'http://localhost:5000/sensors/change_time_request_sensors',
         JSON.stringify(sendData),
-        { headers: await getHeaders() }
+        {headers: await getHeaders()}
       );
     } catch (error) {
       console.error('Произошла ошибка:', error.message);
-      return { error: error.message };
+      return {error: error.message};
     }
   }
+
   async getAllTypeOfSensors() {
     let getEmail = await getHeaders()
     try {
@@ -58,7 +60,7 @@ export class SensorsClient {
       };
       return await axios.post(
         'http://localhost:5000/sensors/get_all_type_of_sensors',
-        JSON.stringify(sendData),
+        sendData,
         {headers: await getHeaders()}
       );
     } catch (error) {
@@ -109,7 +111,7 @@ export class SensorsClient {
     try {
       const sendData = {
         email: getEmail.email,
-        jsonData: formData
+        logsData: formData
       };
       // Отправляем formData на сервер
       return await axios.post(
@@ -267,6 +269,7 @@ export class SensorsClient {
       return {error: error.message};
     }
   }
+
   async changeValuesDataSensor(value, flag, id) {
     let getEmail = await getHeaders();
     console.log('value --', value);
@@ -284,7 +287,7 @@ export class SensorsClient {
       ); // Возвращаем данные из ответа сервера
     } catch (error) {
       console.error('Произошла ошибка:', error.message);
-      return { error: error.message };
+      return {error: error.message};
     }
   }
 
@@ -326,6 +329,7 @@ export class SensorsClient {
       return {error: error.message};
     }
   }
+
   async changeStatusOneSensorFromApi(value) {
     let getEmail = await getHeaders()
     try {
@@ -335,7 +339,7 @@ export class SensorsClient {
       };
       return await axios.post(
         'http://localhost:5000/sensors/change_status_one_sensor_from_api',
-        JSON.stringify(sendData),
+        sendData,
         {headers: await getHeaders()}
       )
     } catch (error) {
@@ -344,17 +348,32 @@ export class SensorsClient {
     }
   }
 
-
-  async changeNullForAllCharts(flag) {
+  async changeDataForEmissionProcessing(id) {
+    let getEmail = await getHeaders()
+    try {
+      id.email =  getEmail.email
+      return await axios.post(
+        'http://localhost:5000/sensors/change_data_for_emission_processing',
+        id,
+        {headers: await getHeaders()}
+      )
+    } catch (error) {
+      console.error('Произошла ошибка:', error.message);
+      return {error: error.message};
+    }
+  }
+  async changeNullOrPeriodForOneSensor(id, flag, value) {
     let getEmail = await getHeaders()
     try {
       const sendData = {
         email: getEmail.email,
-        flag: flag
+        id: id,
+        flag: flag,
+        periodicity: value
       };
       return await axios.post(
-        'http://localhost:5000/sensors/change_null_for_all_charts',
-        JSON.stringify(sendData),
+        'http://localhost:5000/sensors/change_parameters_for_one_object',
+        sendData,
         {headers: await getHeaders()}
       )
     } catch (error) {
@@ -362,12 +381,13 @@ export class SensorsClient {
       return {error: error.message};
     }
   }
-  async deleteOneSensorFromApi(value) {
+
+  async deleteOneSensorFromApi(id) {
     let getEmail = await getHeaders()
     try {
       const sendData = {
         email: getEmail.email,
-        id: value
+        id: id
       };
       return await axios.post(
         'http://localhost:5000/sensors/delete_one_sensor_from_api',

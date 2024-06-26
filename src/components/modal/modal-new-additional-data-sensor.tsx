@@ -5,7 +5,10 @@ import {X} from "@phosphor-icons/react";
 import Stack from "@mui/material/Stack";
 import {SignUpFormAddDataSensor} from "@/components/auth/sign-up-form-add-data-sensor";
 
-const ModalNewAdditionalDataSensor: React.FC = ({ isOpen, onClose, dataOfSensor, successOfDownloadAddData}) => {
+const ModalNewAdditionalDataSensor: React.FC = ({
+                                                  isOpen, onClose, dataOfSensor, sensorMain, alertModalColor,
+                                                  modalMessage, successOfResult
+                                                }) => {
   return (
     <Box>
       <Modal
@@ -27,12 +30,14 @@ const ModalNewAdditionalDataSensor: React.FC = ({ isOpen, onClose, dataOfSensor,
           p: 4
         }}>
 
-          <Stack id="modal-modal-title"  sx={{marginBottom:3}}>
+          <Stack id="modal-modal-title" sx={{marginBottom: 3}}>
             <Box display="flex" alignItems="center" justifyContent="flex-end">
-              <X size={32} onClick={onClose} style={{ cursor: "pointer" }} />
+              <X size={32} onClick={onClose} style={{cursor: "pointer"}}/>
             </Box>
           </Stack>
-          <SignUpFormAddDataSensor  closeModal={onClose} dataOfSensor={dataOfSensor} successOfDownload={successOfDownloadAddData}/>
+          <SignUpFormAddDataSensor dataOfSensor={dataOfSensor} alertModalColor={alertModalColor}
+                                   modalMessage={modalMessage} sensorMain={sensorMain} successOfResult={successOfResult}
+                                   />
         </Box>
       </Modal>
     </Box>

@@ -12,10 +12,30 @@ import {TablePaginationActions} from "@/components/tables/tablePaginationActions
 import {Play, Trash} from "@phosphor-icons/react";
 import {SvgSpinnersBarsScale} from "@/lib/animated-icon/chart-icon";
 import {LineMdPlayFilledToPauseTransition} from "@/lib/animated-icon/pause-icon";
+import TextField from "@mui/material/TextField";
 
-export default function SensorsPaginationAndSelectTable({ rows, sendIDToStore, page, setPage, selectObject, handleChangeIpAddress, deleteOneSensor, handleChangeStatus, handleChangeNetAddress}) {
+export default function SensorsPaginationAndSelectTable({ rows, sendIDToStore, page, setPage, selectObject, handleChangeIpAddress, deleteOneSensor, handleChangeStatus, handleChangeNetAddress, updateSensorDesignation}) {
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [editableCell, setEditableCell] = React.useState({ rowId: null, value: '' });
+  const handleCellClick = (rowId, currentValue) => {
+    setEditableCell({ rowId, value: currentValue });
 
+  };
+
+  const handleInputChange = (event) => {
+    setEditableCell({ ...editableCell, value: event.target.value });
+  };
+
+  const handleInputBlur = (rowId) => {
+    updateSensorDesignation(rowId, editableCell.value);
+    setEditableCell({ rowId: null, value: '' });
+  };
+
+  const handleInputKeyPress = (event, rowId) => {
+    if (event.key === 'Enter') {
+      handleInputBlur(rowId);
+    }
+  };
   const emptyRows =
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
   const handleChangePage = (
@@ -75,14 +95,28 @@ export default function SensorsPaginationAndSelectTable({ rows, sendIDToStore, p
                 <TableCell style={{width: "12%"}} align="center">
                   {row.model}
                 </TableCell>
-                <TableCell style={{width: "7%"}} align="center">
-                  {row.designation}
+                <TableCell
+                  style={{ width: '7%', cursor: 'pointer' }}
+                  align="center"
+                  onClick={() => handleCellClick(row.id, row.designation)}
+                >
+                  {editableCell.rowId === row.id ? (
+                    <TextField
+                      value={editableCell.value}
+                      onChange={handleInputChange}
+                      onBlur={() => handleInputBlur(row.id)}
+                      onKeyPress={(event) => handleInputKeyPress(event, row.id)}
+                      autoFocus
+                    />
+                  ) : (
+                    row.designation
+                  )}
                 </TableCell>
                 <TableCell style={{width: "7%", cursor: "pointer"}} align="center" onClick={() => {handleChangeNetAddress(row.network_number,row.id)}}>
                   {row.network_number}
                 </TableCell>
                 <TableCell style={{width: "7%", cursor: "pointer"}} align="center" onClick={() => {
-                  sendIDToStore(JSON.stringify(row))
+                  sendIDToStore(row.id)
                 }}>
                   Подробнее
                 </TableCell>

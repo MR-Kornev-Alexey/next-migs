@@ -4,7 +4,7 @@ export default async function convertStringToNumber(stringValue) {
   if (!numericSingleCommaOrDotRegex.test(stringValue)) {
     throw new Error('Строка не является допустимым числом с запятой, точкой или с отрицательным знаком');
   }
-
+  console.log(stringValue)
   // Определяем, содержит ли строка запятую или точку, и выполняем соответствующую операцию
   if (stringValue.includes(',')) {
     // Преобразуем строку в число, заменяя запятую на точку

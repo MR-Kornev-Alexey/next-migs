@@ -17,6 +17,7 @@ import {objectClient} from "@/lib/objects/object-client";
 import {addObjects} from "@/store/objectReducer";
 import {SvgSpinnersBarsRotateFade} from "@/lib/animated-icon/bar-rotate-fade";
 import Alert from "@mui/material/Alert";
+import {addTypeOfSensors} from "@/store/typeOfSensorsReducer";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -29,6 +30,10 @@ async function fetchAllObjects(): Promise<Customer[]> {
   return await objectClient.getAllObjects();
 }
 
+async function fetchAllTypeSensors(): Promise<Customer[]> {
+  return await sensorsClient.getAllTypeOfSensors();
+}
+
 export default function Layout({ children }: LayoutProps): React.JSX.Element {
   const [loading, setLoading] = useState<boolean>(true);
   const [isMessage, setIsMessage] = React.useState<string>('');
@@ -38,35 +43,45 @@ export default function Layout({ children }: LayoutProps): React.JSX.Element {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [sensorsData, objectsData] = await Promise.all([fetchAllSensors(), fetchAllObjects()]);
+        const [sensorsData, objectsData, sensorsTypeData] = await Promise.all([
+          fetchAllSensors(),
+          fetchAllObjects(),
+          fetchAllTypeSensors()
+        ]);
 
         if (sensorsData?.data?.allSensors.length > 0) {
           dispatch(addSensors(sensorsData.data.allSensors));
-          // console.log(sensorsData.data.allSensors);
         } else {
           setAlertColor("error");
-          setIsMessage('Ошибка при загрузке данных сенсоров')
-          throw new Error('Не удалось загрузить данные сенсоров');
+          setIsMessage('Не удалось загрузить данные сенсоров');
         }
 
         if (objectsData?.data?.allObjects.length > 0) {
           dispatch(addObjects(objectsData.data.allObjects));
-          // console.log(objectsData.data.allObjects);
         } else {
           setAlertColor("error");
-          setIsMessage('Ошибка при загрузке данных объектов')
-          throw new Error('Не удалось загрузить данные объектов');
+          setIsMessage('Не удалось загрузить данные объектов');
         }
-        setLoading(false); // Устанавливаем в false только если данные успешно загружены
+
+        if (sensorsTypeData?.data?.allSensorsType.length > 0) {
+          dispatch(addTypeOfSensors(sensorsTypeData.data.allSensorsType));
+        } else {
+          setAlertColor("error");
+          setIsMessage('Не удалось загрузить данные типов сенсоров');
+        }
+
+        setLoading(false); // Set loading to false only if all data successfully loaded
       } catch (error) {
-        console.error('Ошибка при загрузке данных:', error);// Устанавливаем в false в случае ошибки
+        console.error('Ошибка при загрузке данных:', error);
         setAlertColor("error");
-        setIsMessage('Ошибка при загрузке данных')
+        setIsMessage(`Ошибка: ${error.message}`);
+        setLoading(false); // Set loading to false in case of error
       }
     };
 
     loadData();
   }, [dispatch]);
+
 
   return (
     <>

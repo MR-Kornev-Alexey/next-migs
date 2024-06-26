@@ -13,27 +13,24 @@ import {z as zod} from 'zod';
 import Box from "@mui/material/Box";
 import {sensorsClient} from "@/lib/sensors/sensors-client";
 import Alert from "@mui/material/Alert";
-import SensorDataForm from "@/lib/common/sensorDataForm";
 import UnitOfMeasurement from "@/lib/common/unitOfMeasurement";
 import {MenuItem, Select} from "@mui/material";
-import {handleResponse} from "@/lib/common/handleResponse";
-import {customersClient} from "@/lib/customers/customers-client";
+import convertStringToNumber from "@/lib/calculate/convert-string-to-number";
 
 
-export function SignUpFormAddDataSensor({closeModal, dataOfSensor, successOfDownload}): React.JSX.Element {
+export function SignUpFormAddDataSensor({sensorMain, dataOfSensor, alertModalColor,
+                                          modalMessage, successOfResult}): React.JSX.Element {
   const [isPending, setIsPending] = React.useState<boolean>(false);
-  const [isMessage, setIsMessage] = React.useState<string>('');
-  const [alertColor, setAlertColor] = React.useState<string>('');
-
+  const numericSingleDotOrCommaRegex = /^-?[0-9]+([,.][0-9]{1,2})?$/;
   type Values = zod.infer<typeof schema>;
 
     const defaultValues = {
-      sensor_id: dataOfSensor.id,
-      factory_number: '',
+      sensor_id: sensorMain.id,
+      factory_number: dataOfSensor?.factory_number || '',
       unit_of_measurement: '',
-      installation_location: '',
-      coefficient: '',
-      additionalSensorInfoNotation: ''
+      installation_location: dataOfSensor?.installation_location || '',
+      coefficient: dataOfSensor?.coefficient?.toString() || '',
+      additionalSensorInfoNotation: dataOfSensor?.additionalSensorInfoNotation || ''
     } satisfies Values;
 
   const schema = zod.object({
@@ -41,7 +38,10 @@ export function SignUpFormAddDataSensor({closeModal, dataOfSensor, successOfDown
     factory_number: zod.string().min(1, {message: 'Ввод заводского номера обязателен'}),
     unit_of_measurement: zod.string().min(1, {message: 'Ввод  единиц измерения обязателен'}),
     installation_location: zod.string().min(1, {message: 'Ввод места установки обязателен'}),
-    coefficient: zod.string().min(1, {message: 'Ввод коеффициента обязателен'}),
+    coefficient: zod.string()
+      .regex(numericSingleDotOrCommaRegex, {
+        message: 'Ввод может содержать только цифры и одну точку или запятую для десятичных цифр, с не более чем двумя цифрами после них'
+      }),
     additionalSensorInfoNotation: zod.string()
     }
   );
@@ -57,29 +57,9 @@ export function SignUpFormAddDataSensor({closeModal, dataOfSensor, successOfDown
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
       setIsPending(true);
-      setIsMessage("")
-      values.coefficient = Number(values.coefficient);
+      values.coefficient = await convertStringToNumber(values.coefficient)
       const result: any = await sensorsClient.addAdditionalDataForSensor(values);
-      switch (result?.data?.statusCode) {
-        case 200:
-          setAlertColor("success");
-          setIsMessage(result?.data?.message);
-          successOfDownload(result?.data?.oneSensor)
-          setTimeout(() => {
-            closeModal(false);
-          }, 2000);
-          break;
-        case 400:
-        case 500:
-          setAlertColor("error");
-          setIsMessage(result?.data?.message);
-          break;
-        default:
-          // Обрабатываем ошибку
-          setAlertColor("error");
-          setIsMessage(result?.error?.message || "Произошла ошибка");
-          break;
-      }
+      successOfResult(result, 'additionalInfo')
       setIsPending(false);
     },
     []
@@ -89,7 +69,7 @@ export function SignUpFormAddDataSensor({closeModal, dataOfSensor, successOfDown
     // Проходим по всем ключам в объекте UnitOfMeasurement
     for (const key in UnitOfMeasurement) {
       // Находим датчик с соответствующим типом (sensorType)
-      if (UnitOfMeasurement[key].some(sensor => sensor.type === dataOfSensor.sensor_type)) {
+      if (UnitOfMeasurement[key].some(sensor => sensor.type === sensorMain.sensor_type)) {
         selectedSensor = UnitOfMeasurement[key];
         break; // Если найден, прекращаем поиск
       }
@@ -97,7 +77,7 @@ export function SignUpFormAddDataSensor({closeModal, dataOfSensor, successOfDown
 
     // Если найден соответствующий датчик, ищем соответствующую модель
     if (selectedSensor) {
-      const selectedModel = selectedSensor.find(item => item.model === dataOfSensor.model);
+      const selectedModel = selectedSensor.find(item => item.model === sensorMain.model);
       // Если модель найдена, возвращаем ее значения name_unit и value
       return selectedModel ? selectedModel.name_unit.map((unit, index) => ({
         name_unit: unit,
@@ -110,7 +90,7 @@ export function SignUpFormAddDataSensor({closeModal, dataOfSensor, successOfDown
   return (
     <Stack spacing={3}>
       <Stack spacing={1}>
-        <Typography variant="h5">Добавление дополнительных данных для датчика:  {dataOfSensor.sensor_type}  | {dataOfSensor.designation}</Typography>
+        <Typography variant="h5">Добавление дополнительных данных для датчика:  {sensorMain.sensor_type}  | {sensorMain.designation}</Typography>
       </Stack>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
@@ -184,11 +164,11 @@ export function SignUpFormAddDataSensor({closeModal, dataOfSensor, successOfDown
                                   values="0 12 12;360 12 12"></animateTransform>
               </path>
             </svg> : <Box>
-              Зарегистрировать
+              Сохранить
             </Box>
             }
           </Button>
-          {isMessage&&<Alert color={alertColor}>{isMessage}</Alert>}
+          {modalMessage&&<Alert color={alertModalColor}>{modalMessage}</Alert>}
         </Stack>
       </form>
     </Stack>
