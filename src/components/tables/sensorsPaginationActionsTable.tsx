@@ -19,7 +19,7 @@ import {UserGear} from "@phosphor-icons/react/dist/ssr/UserGear";
 import Button from "@mui/material/Button";
 import Stack from '@mui/material/Stack';
 import {ListMagnifyingGlass} from "@phosphor-icons/react";
-import setKindOfObject from "@/lib/common/kindOfObject";
+import setKindOfObject from "@/lib/common/kind-of-object";
 
 interface TablePaginationActionsProps {
   count: number;

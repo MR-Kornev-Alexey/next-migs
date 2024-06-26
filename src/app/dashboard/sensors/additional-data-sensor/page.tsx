@@ -30,6 +30,10 @@ import {addSensors} from "@/store/sensorsReducer";
 import ModalInfoAboutSensor from "@/components/modal/modal-info-error-about-sensor";
 import handleApiResponseModal from "@/lib/common/handle-api-response-modal";
 import handleApiErrorModal from "@/lib/common/handle-api-error-modal";
+import Alert from "@mui/material/Alert";
+import handleApiResponse from "@/lib/common/handle-api-response";
+import handleApiError from "@/lib/common/handle-api-error";
+import handleApiResponseSample from "@/lib/common/handle-api-response-sample";
 
 
 export default function Page(): React.JSX.Element {
@@ -55,6 +59,9 @@ export default function Page(): React.JSX.Element {
   const [dataOfSensor, setIsDataOfSensor] = useState<any>(null);
   const [isLoading, setLoading] = useState(false);
   const [isMessage, setIsMessage] = useState("");
+  const [alertFileColor, setAlertFileColor] = React.useState<string>('error');
+  const [isFileMessage, setIsFileMessage] = useState("");
+
 
   useEffect(() => {
     setLoading(true);
@@ -137,204 +144,250 @@ export default function Page(): React.JSX.Element {
       });
     }
   };
+
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+    const selectedFile = e.target.files[0];
+
+    if (!selectedFile) {
+      setIsFileMessage('Файл не выбран.');
+      setAlertFileColor('error');
+      return;
+    }
+
+    if (selectedFile.size > 5 * 1024 * 1024) {
+      setIsFileMessage('Размер файла не должен превышать 5 МБ.');
+      setAlertFileColor('error');
+      return;
+    }
+
+    if (selectedFile.type !== 'application/pdf') {
+      setIsFileMessage('Файл должен быть в формате PDF.');
+      setAlertFileColor('error');
+      return;
+    }
+
+    setFile(selectedFile);
+    setIsFileMessage('Файл выбран.');
+    setAlertFileColor('success');
   };
+
   const handleSubmitNEW = async (e) => {
     e.preventDefault();
+
+    if (!file) {
+      setIsFileMessage('Пожалуйста, выберите файл для загрузки.');
+      setAlertFileColor('error');
+      return;
+    }
+
     const formData = new FormData();
     formData.append('file', file);
     formData.append("id", dataOfSensor.id);
 
     try {
-      const result: any = await sensorsClient.saveFileAboutSensor(formData);
+      const result = await sensorsClient.saveFileAboutSensor(formData);
 
-      // Обновление флага перезагрузки и сброс файла
-      setReloadFlag(prev => !prev);
-      setFile(null);
-
-      // Сброс значения поля ввода файла
-      e.target.reset(); // assuming the form is the target
-
-      const successUpdatedData = useUpdateSensor(result?.data?.oneSensor, allSensors);
-      dispatch(addSensors(successUpdatedData));
+      handleApiResponseSample({
+        result,
+        successCallback: () => {
+          setReloadFlag(prev => !prev);
+          setFile(null);
+          e.target.reset();
+          const successUpdatedData = useUpdateSensor(result?.data?.oneSensor, allSensors);
+          dispatch(addSensors(successUpdatedData));
+          setIsFileMessage('Файл успешно загружен.');
+          setAlertFileColor('success');
+          setTimeout(() => {
+            setIsFileMessage(null);
+          }, 2000);
+        },
+        setAlertColor: setAlertFileColor,
+        setIsMessage: setIsFileMessage,
+      });
     } catch (error) {
-      console.error('Error uploading file:', error);
+      handleApiErrorModal({
+        error,
+        setIsMessage: setIsFileMessage,
+        setIsAlert: setAlertFileColor,
+      });
     }
   };
 
-  return (
-    <Stack spacing={3}>
-      {isLoading && <SpinnerWithAlert isMessage={isMessage} alertColor={alertColor}/>}
-      {dataOfSensor && <Box>
-        <Box sx={{marginY: 2}}>
-          <Typography variant="h4"> {dataOfSensor?.sensor_type} | {dataOfSensor?.designation}</Typography>
-        </Box>
-        {/*{JSON.stringify(dataOfSensor.requestSensorInfo[0])}*/}
-        <Typography variant="h5" sx={{marginY: 2}}>Основные данные</Typography>
-        <TableContainer component={Paper}>
-          <Table sx={{minWidth: 400}} aria-label="simple table">
-            <TableHead>
-              <TableRow>
-                <TableCell>Адрес установки</TableCell>
-                <TableCell>Тип датчика</TableCell>
-                <TableCell>Модель</TableCell>
-                <TableCell style={{width: "10%", textAlign: "center"}}>Сетевой номер</TableCell>
-                <TableCell style={{width: "10%", textAlign: "center"}}>Активность</TableCell>
-                <TableCell style={{textAlign: "center"}}>Сообщения о ошибках</TableCell>
-                <TableCell>Примечание</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              <TableRow>
-                <TableCell>
-                  <Typography
-                    variant="body1">{dataOfSensor?.object.address} | {dataOfSensor?.object.name}</Typography>
-                </TableCell>
-                <TableCell> {dataOfSensor?.sensor_type}</TableCell>
-                <TableCell>{dataOfSensor?.model}</TableCell>
-                <TableCell style={{width: "10%", textAlign: "center"}}>{dataOfSensor?.network_number}</TableCell>
-                <TableCell style={{width: "10%", textAlign: "center"}}>
-                  {dataOfSensor?.run ? <SvgSpinnersBarsScale/> : <LineMdPlayFilledToPauseTransition/>
-                  }
-                </TableCell>
-                <TableCell style={{textAlign: "center", cursor: "pointer"}}
-                           onClick={() => openModalErrorInfoSensor()}><Article size={24}/></TableCell>
-                <TableCell>{dataOfSensor?.notation}</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <Typography variant="h5" sx={{marginY: 2}}>Дополнительные данные</Typography>
-        <TableContainer component={Paper}>
-          <Table sx={{minWidth: 400}} aria-label="simple table">
-            <TableHead>
-              <TableRow>
-                <TableCell style={{textAlign: "center"}}>Заводской номер</TableCell>
-                <TableCell style={{textAlign: "center"}}>Единица измерения</TableCell>
-                <TableCell style={{textAlign: "center"}}>Место установки</TableCell>
-                <TableCell style={{textAlign: "center"}}>Коэффициент</TableCell>
-                <TableCell style={{textAlign: "center", width: "8%"}}>Порог выброса &#8432;</TableCell>
-                <TableCell style={{textAlign: "center", width: "12%"}}>Количество выбросов подряд &#8432;</TableCell>
-                <TableCell style={{textAlign: "center", width: "12%"}}>Количество ошибок подряд &#8432;</TableCell>
-                <TableCell style={{textAlign: "center"}}>Примечание</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              <TableRow>
-                <TableCell
-                  style={{textAlign: "center"}}>{dataOfSensor?.additional_sensor_info[0]?.factory_number}</TableCell>
-                <TableCell
-                  style={{textAlign: "center"}}>{convertUnits(dataOfSensor?.additional_sensor_info[0]?.unit_of_measurement)}</TableCell>
-                <TableCell
-                  style={{textAlign: "center"}}>{dataOfSensor?.additional_sensor_info[0]?.installation_location}</TableCell>
-                <TableCell
-                  style={{textAlign: "center"}}>{dataOfSensor?.additional_sensor_info[0]?.coefficient}</TableCell>
-                <TableCell
-                  style={{textAlign: "center"}}>{dataOfSensor?.additional_sensor_info[0]?.limitValue}</TableCell>
-                <TableCell
-                  style={{textAlign: "center"}}>{dataOfSensor?.additional_sensor_info[0]?.emissionsQuantity}</TableCell>
-                <TableCell
-                  style={{textAlign: "center"}}>{dataOfSensor?.additional_sensor_info[0]?.errorsQuantity}</TableCell>
-                <TableCell
-                  style={{textAlign: "center"}}>{dataOfSensor?.additional_sensor_info[0]?.additionalSensorInfoNotation}</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <Box display="flex" justifyContent="center" sx={{marginY: 2}}>
-          <Button variant="contained" onClick={openModalNewAdditionalDataSensor}>Загрузить данные</Button>
-        </Box>
-        <TableContainer component={Paper}>
-          <Table sx={{minWidth: 400}} aria-label="simple table">
-            <TableHead>
-              <TableRow>
-                <TableCell style={{textAlign: "center"}}>Код запроса</TableCell>
-                <TableCell style={{textAlign: "center"}}>Периодичность запроса &#8432;</TableCell>
-                <TableCell style={{textAlign: "center"}}>Последнее базовое значение</TableCell>
-                <TableCell style={{textAlign: "center"}}>Логический ноль &#8432;</TableCell>
-                <TableCell style={{textAlign: "center"}}>Минимальное базовое значение</TableCell>
-                <TableCell style={{textAlign: "center"}}>Максимальное базовое значение</TableCell>
-                <TableCell style={{textAlign: "center"}}>Контроль оповещения</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              <TableRow>
-                <TableCell style={{textAlign: "center"}}>{dataOfSensor?.requestSensorInfo[0]?.request_code}</TableCell>
-                <TableCell style={{textAlign: "center"}}>{dataOfSensor?.requestSensorInfo[0]?.periodicity}</TableCell>
-                <TableCell
-                  style={{textAlign: "center"}}>{dataOfSensor?.requestSensorInfo[0]?.last_base_value}</TableCell>
-                <TableCell style={{textAlign: "center"}}>{dataOfSensor?.requestSensorInfo[0]?.base_zero}</TableCell>
-                <TableCell style={{textAlign: "center"}}>{dataOfSensor?.requestSensorInfo[0]?.min_base}</TableCell>
-                <TableCell style={{textAlign: "center"}}>{dataOfSensor?.requestSensorInfo[0]?.max_base}</TableCell>
-                <TableCell style={{cursor: "pointer"}} align="center">{dataOfSensor?.requestSensorInfo[0]?.warning ?
-                  <Siren size={24} color="#a00323"/> : <PlayPause size={24}/>}</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <Box sx={{marginTop: 2}}>
-          <Typography variant="h5">Данные по журналам</Typography>
+
+    return (
+      <Stack spacing={3}>
+        {isLoading && <SpinnerWithAlert isMessage={isMessage} alertColor={alertColor}/>}
+        {dataOfSensor && <Box>
+          <Box sx={{marginY: 2}}>
+            <Typography variant="h4"> {dataOfSensor?.sensor_type} | {dataOfSensor?.designation}</Typography>
+          </Box>
+          {/*{JSON.stringify(dataOfSensor.requestSensorInfo[0])}*/}
+          <Typography variant="h5" sx={{marginY: 2}}>Основные данные</Typography>
           <TableContainer component={Paper}>
             <Table sx={{minWidth: 400}} aria-label="simple table">
               <TableHead>
                 <TableRow>
-                  <TableCell>Информация о паспорте</TableCell>
-                  <TableCell>Информация о поверке</TableCell>
-                  <TableCell>Информация о гарантии</TableCell>
+                  <TableCell>Адрес установки</TableCell>
+                  <TableCell>Тип датчика</TableCell>
+                  <TableCell>Модель</TableCell>
+                  <TableCell style={{width: "10%", textAlign: "center"}}>Сетевой номер</TableCell>
+                  <TableCell style={{width: "10%", textAlign: "center"}}>Активность</TableCell>
+                  <TableCell style={{textAlign: "center"}}>Сообщения о ошибках</TableCell>
                   <TableCell>Примечание</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 <TableRow>
-                  <TableCell>{dataOfSensor.sensor_operation_log[0]?.passport_information}</TableCell>
-                  <TableCell>{dataOfSensor.sensor_operation_log[0]?.verification_information}</TableCell>
-                  <TableCell>{dataOfSensor.sensor_operation_log[0]?.warranty_information}</TableCell>
-                  <TableCell>{dataOfSensor.sensor_operation_log[0]?.sensorOperationLogNotation}</TableCell>
+                  <TableCell>
+                    <Typography
+                      variant="body1">{dataOfSensor?.object.address} | {dataOfSensor?.object.name}</Typography>
+                  </TableCell>
+                  <TableCell> {dataOfSensor?.sensor_type}</TableCell>
+                  <TableCell>{dataOfSensor?.model}</TableCell>
+                  <TableCell style={{width: "10%", textAlign: "center"}}>{dataOfSensor?.network_number}</TableCell>
+                  <TableCell style={{width: "10%", textAlign: "center"}}>
+                    {dataOfSensor?.run ? <SvgSpinnersBarsScale/> : <LineMdPlayFilledToPauseTransition/>
+                    }
+                  </TableCell>
+                  <TableCell style={{textAlign: "center", cursor: "pointer"}}
+                             onClick={() => openModalErrorInfoSensor()}><Article size={24}/></TableCell>
+                  <TableCell>{dataOfSensor?.notation}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <Typography variant="h5" sx={{marginY: 2}}>Дополнительные данные</Typography>
+          <TableContainer component={Paper}>
+            <Table sx={{minWidth: 400}} aria-label="simple table">
+              <TableHead>
+                <TableRow>
+                  <TableCell style={{textAlign: "center"}}>Заводской номер</TableCell>
+                  <TableCell style={{textAlign: "center"}}>Единица измерения</TableCell>
+                  <TableCell style={{textAlign: "center"}}>Место установки</TableCell>
+                  <TableCell style={{textAlign: "center"}}>Коэффициент</TableCell>
+                  <TableCell style={{textAlign: "center", width: "8%"}}>Порог выброса &#8432;</TableCell>
+                  <TableCell style={{textAlign: "center", width: "12%"}}>Количество выбросов подряд &#8432;</TableCell>
+                  <TableCell style={{textAlign: "center", width: "12%"}}>Количество ошибок подряд &#8432;</TableCell>
+                  <TableCell style={{textAlign: "center"}}>Примечание</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                <TableRow>
+                  <TableCell
+                    style={{textAlign: "center"}}>{dataOfSensor?.additional_sensor_info[0]?.factory_number}</TableCell>
+                  <TableCell
+                    style={{textAlign: "center"}}>{convertUnits(dataOfSensor?.additional_sensor_info[0]?.unit_of_measurement)}</TableCell>
+                  <TableCell
+                    style={{textAlign: "center"}}>{dataOfSensor?.additional_sensor_info[0]?.installation_location}</TableCell>
+                  <TableCell
+                    style={{textAlign: "center"}}>{dataOfSensor?.additional_sensor_info[0]?.coefficient}</TableCell>
+                  <TableCell
+                    style={{textAlign: "center"}}>{dataOfSensor?.additional_sensor_info[0]?.limitValue}</TableCell>
+                  <TableCell
+                    style={{textAlign: "center"}}>{dataOfSensor?.additional_sensor_info[0]?.emissionsQuantity}</TableCell>
+                  <TableCell
+                    style={{textAlign: "center"}}>{dataOfSensor?.additional_sensor_info[0]?.errorsQuantity}</TableCell>
+                  <TableCell
+                    style={{textAlign: "center"}}>{dataOfSensor?.additional_sensor_info[0]?.additionalSensorInfoNotation}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
           </TableContainer>
           <Box display="flex" justifyContent="center" sx={{marginY: 2}}>
-            <Button variant="contained" onClick={openModalNewOperationLogSensor}>Загрузить данные</Button>
+            <Button variant="contained" onClick={openModalNewAdditionalDataSensor}>Загрузить данные</Button>
           </Box>
-        </Box>
-        <Typography variant="h5" sx={{marginTop: 2}}>Копии документов</Typography>
-        <Box display="flex" justifyContent="space-around">
-          {dataOfSensor.files.map((item, index) =>
-            <Box key={index} sx={{cursor: "pointer"}}>
-              <Link href={item.url} target="_blank">
-                <FilePdf size={36}/>
-              </Link>
+          <TableContainer component={Paper}>
+            <Table sx={{minWidth: 400}} aria-label="simple table">
+              <TableHead>
+                <TableRow>
+                  <TableCell style={{textAlign: "center"}}>Код запроса</TableCell>
+                  <TableCell style={{textAlign: "center"}}>Периодичность запроса &#8432;</TableCell>
+                  <TableCell style={{textAlign: "center"}}>Последнее базовое значение</TableCell>
+                  <TableCell style={{textAlign: "center"}}>Логический ноль &#8432;</TableCell>
+                  <TableCell style={{textAlign: "center"}}>Минимальное базовое значение</TableCell>
+                  <TableCell style={{textAlign: "center"}}>Максимальное базовое значение</TableCell>
+                  <TableCell style={{textAlign: "center"}}>Контроль оповещения</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                <TableRow>
+                  <TableCell
+                    style={{textAlign: "center"}}>{dataOfSensor?.requestSensorInfo[0]?.request_code}</TableCell>
+                  <TableCell style={{textAlign: "center"}}>{dataOfSensor?.requestSensorInfo[0]?.periodicity}</TableCell>
+                  <TableCell
+                    style={{textAlign: "center"}}>{dataOfSensor?.requestSensorInfo[0]?.last_base_value}</TableCell>
+                  <TableCell style={{textAlign: "center"}}>{dataOfSensor?.requestSensorInfo[0]?.base_zero}</TableCell>
+                  <TableCell style={{textAlign: "center"}}>{dataOfSensor?.requestSensorInfo[0]?.min_base}</TableCell>
+                  <TableCell style={{textAlign: "center"}}>{dataOfSensor?.requestSensorInfo[0]?.max_base}</TableCell>
+                  <TableCell style={{cursor: "pointer"}} align="center">{dataOfSensor?.requestSensorInfo[0]?.warning ?
+                    <Siren size={24} color="#a00323"/> : <PlayPause size={24}/>}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <Box sx={{marginTop: 2}}>
+            <Typography variant="h5">Данные по журналам</Typography>
+            <TableContainer component={Paper}>
+              <Table sx={{minWidth: 400}} aria-label="simple table">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Информация о паспорте</TableCell>
+                    <TableCell>Информация о поверке</TableCell>
+                    <TableCell>Информация о гарантии</TableCell>
+                    <TableCell>Примечание</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>{dataOfSensor.sensor_operation_log[0]?.passport_information}</TableCell>
+                    <TableCell>{dataOfSensor.sensor_operation_log[0]?.verification_information}</TableCell>
+                    <TableCell>{dataOfSensor.sensor_operation_log[0]?.warranty_information}</TableCell>
+                    <TableCell>{dataOfSensor.sensor_operation_log[0]?.sensorOperationLogNotation}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <Box display="flex" justifyContent="center" sx={{marginY: 2}}>
+              <Button variant="contained" onClick={openModalNewOperationLogSensor}>Загрузить данные</Button>
             </Box>
-          )
-          }
-        </Box>
-        <Box>
-          <form onSubmit={handleSubmitNEW}>
-            <input type="file" onChange={handleFileChange}/>
-            <Button type="submit" variant="contained" sx={{mt: 2}}>Загрузить копию</Button>
-          </form>
-        </Box>
-        <Typography variant="body2" sx={{marginY: 2}}>&#8432;<i>Данные для каждого типа датчиков на каждом
-          объекте</i></Typography>
+          </Box>
+          <Typography variant="h5" sx={{marginTop: 2}}>Копии документов</Typography>
+          <Box display="flex" justifyContent="space-around">
+            {dataOfSensor.files.map((item, index) =>
+              <Box key={index} sx={{cursor: "pointer"}}>
+                <Link href={item.url} target="_blank">
+                  <FilePdf size={36}/>
+                </Link>
+              </Box>
+            )
+            }
+          </Box>
+          <Box sx={{marginY: 2}}>
+            <form onSubmit={handleSubmitNEW}>
+              <input type="file" onChange={handleFileChange}/>
+              <Button variant="contained" type="submit">Загрузить документл</Button>
+            </form>
+          </Box>
+          <Typography variant="body2" sx={{marginY: 2}}>&#8432;<i>Данные для каждого типа датчиков на каждом
+            объекте</i></Typography>
 
-        <ModalInfoAboutSensor isOpen={isModalErrorOpen} onClose={closeModalErrorInfoSensor}
-                              dataError={dataOfSensor?.error_information}/>
-        <ModalNewAdditionalDataSensor isOpen={isAdditionalOpen} onClose={closeModalNewAdditionalDataSensor}
-                                      sensorMain={dataOfSensor}
+          <ModalInfoAboutSensor isOpen={isModalErrorOpen} onClose={closeModalErrorInfoSensor}
+                                dataError={dataOfSensor?.error_information}/>
+          <ModalNewAdditionalDataSensor isOpen={isAdditionalOpen} onClose={closeModalNewAdditionalDataSensor}
+                                        sensorMain={dataOfSensor}
+                                        alertModalColor={alertModalColor}
+                                        modalMessage={modalMessage}
+                                        dataOfSensor={dataOfSensor?.additional_sensor_info[0]}
+                                        successOfResult={successOfResult}/>
+          <ModalNewOperationLogSensor isOpen={isLogsOpen} sensorMain={dataOfSensor}
+                                      dataOfSensor={dataOfSensor?.sensor_operation_log[0]}
                                       alertModalColor={alertModalColor}
                                       modalMessage={modalMessage}
-                                      dataOfSensor={dataOfSensor?.additional_sensor_info[0]}
-                                       successOfResult={successOfResult}/>
-        <ModalNewOperationLogSensor isOpen={isLogsOpen} sensorMain={dataOfSensor}
-                                    dataOfSensor={dataOfSensor?.sensor_operation_log[0]}
-                                    alertModalColor={alertModalColor}
-                                    modalMessage={modalMessage}
-                                    onClose={closeModalNewOperationLogSensor}
-                                    successOfDownloadLogData={successOfResult}/>
-      </Box>
-      }
-    </Stack>
-  );
-}
+                                      onClose={closeModalNewOperationLogSensor}
+                                      successOfDownloadLogData={successOfResult}/>
+          {isFileMessage && <Alert color={alertFileColor}>{isFileMessage}</Alert>}
+        </Box>
+        }
+      </Stack>
+    );
+  }

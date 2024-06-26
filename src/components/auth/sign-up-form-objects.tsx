@@ -59,14 +59,13 @@ export function SignUpFormObject({
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
       setIsPending(true);
-      const result = await objectClient.initSignObject(values);
+      const result:any = await objectClient.initSignObject(values);
       if (result?.data?.statusCode === 200) {
         setIsPending(false);
         setAlertColor("success");
         setIsMessage(result?.data?.message)
+        onRegistrationObjectSuccess(result?.data?.allObjects);
         setTimeout(() => {
-          // обновленные данные в таблицу
-          onRegistrationObjectSuccess(result);
           closeModal(false)
         }, 2000);
       }

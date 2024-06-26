@@ -7,9 +7,7 @@ import {X} from "@phosphor-icons/react";
 import Stack from "@mui/material/Stack";
 import {SignUpFormObject} from "@/components/auth/sign-up-form-objects";
 
-const ModalNewObject: React.FC = ({ isOpenObject, onCloseObject, rowsOrganizations, onRegistrationSuccess}) => {
-
-
+const ModalNewObject: React.FC = ({ isOpenObject, onCloseObject, rowsOrganizations, onRegistrationObjectSuccess }) => {
   return (
     <Box>
       <Modal
@@ -36,7 +34,7 @@ const ModalNewObject: React.FC = ({ isOpenObject, onCloseObject, rowsOrganizatio
               <X size={32} onClick={onCloseObject} style={{ cursor: "pointer" }} />
             </Box>
           </Stack>
-          <SignUpFormObject  closeModal={onCloseObject} onRegistrationObjectSuccess={onRegistrationSuccess} rowsOrganizations={rowsOrganizations}/>
+          <SignUpFormObject  closeModal={onCloseObject} onRegistrationObjectSuccess={onRegistrationObjectSuccess} rowsOrganizations={rowsOrganizations}/>
         </Box>
       </Modal>
     </Box>

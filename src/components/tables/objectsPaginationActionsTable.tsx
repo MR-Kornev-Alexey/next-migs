@@ -18,13 +18,17 @@ import TableHead from "@mui/material/TableHead";
 import {UserGear} from "@phosphor-icons/react/dist/ssr/UserGear";
 import Button from "@mui/material/Button";
 import Stack from '@mui/material/Stack';
-import {ListMagnifyingGlass} from "@phosphor-icons/react";
-import setKindOfObject from "@/lib/common/kindOfObject";
+import {GearFine, ListMagnifyingGlass} from "@phosphor-icons/react";
+import setKindOfObject from "@/lib/common/kind-of-object";
 
 interface TablePaginationActionsProps {
   count: number;
   page: number;
   rowsPerPage: number;
+  selectObject: (
+    event: React.MouseEvent<HTMLButtonElement>,
+    id: string,
+  ) => void;
   onPageChange: (
     event: React.MouseEvent<HTMLButtonElement>,
     newPage: number,
@@ -33,7 +37,7 @@ interface TablePaginationActionsProps {
 
 export function TablePaginationActions(props: TablePaginationActionsProps) {
   const theme = useTheme();
-  const {count, page, rowsPerPage, onPageChange} = props;
+  const {count, page, rowsPerPage, onPageChange, selectObject} = props;
 
   const handleFirstPageButtonClick = (
     event: React.MouseEvent<HTMLButtonElement>,
@@ -87,7 +91,7 @@ export function TablePaginationActions(props: TablePaginationActionsProps) {
   );
 }
 
-export default function ObjectsPaginationActionsTable({rows}) {
+export default function ObjectsPaginationActionsTable({rows, selectObject}) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
@@ -125,7 +129,7 @@ export default function ObjectsPaginationActionsTable({rows}) {
               <TableCell style={{width: "20%"}} align="center">
                 Датчики</TableCell>
               <TableCell style={{width: "10%"}} align="center">
-                Подробнее</TableCell>
+                <GearFine size={24} /></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -147,10 +151,10 @@ export default function ObjectsPaginationActionsTable({rows}) {
                   {setKindOfObject(row.objectsType)}
                 </TableCell>
                 <TableCell style={{width: "20%"}} align="center">
-                  <ListMagnifyingGlass size={24}/>
+                  {row.Sensor.length}
                 </TableCell>
-                <TableCell style={{width: "10%"}} align="center">
-                  <UserGear size={24}/>
+                <TableCell style={{width: "10%", cursor: "pointer"}} align="center" onClick={()=>selectObject(row.id)}>
+                  <GearFine size={24} />
                 </TableCell>
               </TableRow>
             ))}

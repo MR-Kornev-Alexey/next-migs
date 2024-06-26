@@ -25,6 +25,7 @@ import {addSensors} from "@/store/sensorsReducer";
 import SelectObjectModal from "@/components/modal/select-object-modal";
 import SelectObjectAndTypeOfSensorsModal from "@/components/modal/select-object-and-sensors-modal";
 import EmissionResultModal from "@/components/modal/emission-result-modal";
+import sendIDToStore from "@/lib/common/send-ID-to-store";
 
 
 interface Sensor {
@@ -45,7 +46,7 @@ interface SelectSensorsForShowProps {
 }
 
 const SelectSensorsForShow = forwardRef((props: SelectSensorsForShowProps, ref) => {
-  const {sendGroupedData, sendCategories, setNamesChart, setBarChart, setGroupedData} = props;
+  const {sendGroupedData, sendCategories, setNamesChart, setBarChart, setGroupedData , setDataForTables, flag , setSelectedRowsForTables} = props;
   const dispatch: AppDispatch = useDispatch();
   const allSensors = useSelector((state: RootState) => state.allSensors.value);
   const allObjects = useSelector((state: RootState) => state.allObjects.value);
@@ -154,13 +155,16 @@ const SelectSensorsForShow = forwardRef((props: SelectSensorsForShowProps, ref) 
               setTimeout(() => {
                 setIsMessage('');
               }, 2000);
-              const resultSortedIDSensors = (await sortedSensors(selectedRows)).fullData
-              console.log('resultSortedIDSensors -- -', resultSortedIDSensors)
-              const transformsData = await transformData(result?.data?.groupedData, resultSortedIDSensors)
-              console.log('transformsData --', transformsData.series)
-              sendGroupedData(transformsData.series)
-              sendCategories(transformsData.categories)
-              createDataForHistogram(transformsData.series)
+              if(flag === 'table') {
+                setDataForTables(result?.data?.groupedData)
+                setSelectedRowsForTables(selectedRows)
+              } else {
+                const resultSortedIDSensors = (await sortedSensors(selectedRows)).fullData
+                const transformsData = await transformData(result?.data?.groupedData, resultSortedIDSensors)
+                sendGroupedData(transformsData.series)
+                sendCategories(transformsData.categories)
+                createDataForHistogram(transformsData.series)
+              }
               break;
             case 400:
             case 500:
@@ -346,14 +350,14 @@ const SelectSensorsForShow = forwardRef((props: SelectSensorsForShowProps, ref) 
         <Typography variant="h6">Выберите объект</Typography>
       </Box>
       <ObjectsPaginationAndSelectTable rows={allObjects} onSelectedRowsChange={onSelectedRowsChange}/>
-      <Grid container spacing={2} sx={{marginY: 2}}>
+      {flag !== "table" && <Grid container spacing={2} sx={{marginY: 2}}>
         <Grid item xs={12} md={4} display='flex' justifyContent='center'>
           <Button variant="contained" sx={{width: 220}} onClick={() => setIdForOneObject("null")}>Установка/сброс
-            нуля для объектов</Button>
+            нуля для объекта</Button>
         </Grid>
         <Grid item xs={12} md={4} display='flex' justifyContent='center'>
-        <Button variant="contained"  onClick={() => setIdForOneObject("period")} sx={{width: 220}} >Изменить
-          периодичность опроса для объекта</Button>
+          <Button variant="contained"  onClick={() => setIdForOneObject("period")} sx={{width: 220}} >Изменить
+            периодичность опроса для объекта</Button>
         </Grid>
         <Grid item xs={12} md={4} display='flex' justifyContent='center'>
           <Button variant="contained" sx={{width: 220}} onClick={() => settingParameters()}>Управление
@@ -362,7 +366,7 @@ const SelectSensorsForShow = forwardRef((props: SelectSensorsForShowProps, ref) 
         <Grid item xs={12} md={12} display='flex' justifyContent='center' sx={{marginTop:2}}>
           {showButton && <Button variant="contained" onClick={resetAllSelect} sx={{width: 220}}>Очистить выборку</Button>}
         </Grid>
-      </Grid>
+      </Grid>}
       {filteredSensors.length !== 0 &&
         <Box>
           <Box>
@@ -379,7 +383,9 @@ const SelectSensorsForShow = forwardRef((props: SelectSensorsForShowProps, ref) 
           <Grid container spacing={2} sx={{marginTop: 2}}>
             <Grid item xs={12} md={4}>
               <Box>
-                <Typography variant="h6" sx={{my: 2}}>Для построения графиков выбрать период</Typography>
+                {flag === "table" ?  <Typography variant="h6" sx={{my: 2}}>Для формирования таблиц выберите период</Typography>:
+                  <Typography variant="h6" sx={{my: 2}}>Для построения графиков выберите период</Typography>
+                }
                 <SelectTimePeriod setPeriodToParent={setIsPeriod} sx={{my: 2}}/>
                 <Button variant="contained" onClick={sendRequestToApi} sx={{width: 220}}>Загрузить</Button>
               </Box>

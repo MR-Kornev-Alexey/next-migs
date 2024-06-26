@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Box from "@mui/material/Box";
-import { sensorsClient } from "@/lib/sensors/sensors-client";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 interface ObjectInfo {
@@ -39,7 +38,7 @@ function findSensorById(sensors: Sensor[], id: string): Sensor | undefined {
 }
 export default function Page() {
   const [messages, setMessages] = useState<any[]>([]);
-  const allSensors = useSelector((state: RootState) => state.allSensors.value[0]); // Move useSelector here
+  const allSensors = useSelector((state: RootState) => state.allSensors.value);
 
   function getSensorsName(id: string) {
     const foundSensor = findSensorById(allSensors, id);

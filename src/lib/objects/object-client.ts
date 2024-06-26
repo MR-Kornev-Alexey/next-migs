@@ -15,7 +15,7 @@ export class ObjectClient {
       };
       return await axios.post(
         'http://localhost:5000/objects/create_new_object',
-        JSON.stringify(sendData), // Преобразование объекта в JSON-строку
+        sendData, // Преобразование объекта в JSON-строку
         { headers: await getHeaders() }
       );
     } catch (error) {

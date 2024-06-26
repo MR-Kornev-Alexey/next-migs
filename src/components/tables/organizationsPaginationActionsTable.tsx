@@ -11,9 +11,9 @@ import TableHead from "@mui/material/TableHead";
 import {TablePaginationActions} from "@/components/tables/tablePaginationActions";
 import Checkbox from "@mui/material/Checkbox";
 import {useSelection} from "@/hooks/use-selection";
-import {CheckSquareOffset} from "@phosphor-icons/react";
+import {CheckSquareOffset, GearFine} from "@phosphor-icons/react";
 
-export default function OrganizationsPaginationActionsTable({rows, onSelectedRowsChange}) {
+export default function OrganizationsPaginationActionsTable({rows, onSelectedRowsChange, openDataOrganisation}) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const rowIds = React.useMemo(() => {
@@ -73,7 +73,7 @@ export default function OrganizationsPaginationActionsTable({rows, onSelectedRow
             <TableCell align="center">
               Адрес</TableCell>
             <TableCell style={{width: "5%"}} align="center">
-              Подробнее
+              <GearFine size={24} />
             </TableCell>
           </TableRow>
         </TableHead>
@@ -106,8 +106,8 @@ export default function OrganizationsPaginationActionsTable({rows, onSelectedRow
                 <TableCell align="center">
                   {row.address}
                 </TableCell>
-                <TableCell style={{width: "5%"}} align="center">
-                  <CheckSquareOffset size={24}/>
+                <TableCell style={{width: "5%", cursor: "pointer"}} align="center" onClick={()=>openDataOrganisation(row.id)}>
+                  <GearFine size={24} />
                 </TableCell>
               </TableRow>
             )

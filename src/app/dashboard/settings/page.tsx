@@ -18,19 +18,34 @@ import {sensorsClient} from "@/lib/sensors/sensors-client";
 import jsonData from "@/lib/json/sensors.json"
 import TypeSensorsWithoutSelect from "@/components/tables/typeSensorsWithoutSelect";
 import ModalNewModelSensor from "@/components/modal/modal-new-model-sensor";
+import {useDispatch, useSelector} from "react-redux";
+import {AppDispatch, RootState} from "@/store/store";
+import {addObjects} from "@/store/objectReducer";
+import {addSensors} from "@/store/sensorsReducer";
+import modalDataOrganisation from "@/components/modal/modal-data-organisation";
+import ModalDataOrganisation from "@/components/modal/modal-data-organisation";
+import ModalDataObject from "@/components/modal/modal-data-object";
+async function fetchAllOrganizations(): Promise<Customer[]> {
+  return await organizationClient.getAllOrganization();
+}
 
 export default function Page(): React.JSX.Element {
   const [organizations, setOrganizations] = useState([]);
-  const [objects, setObjects] = useState([]);
-  const [typesSensors, setTypesSensors] = useState([]);
+  const objects = useSelector((state: RootState) => state.allObjects.value);
+  const typesSensors = useSelector((state: RootState) => state.allTypesOfSensors.value);
   const [showInit, setShowInit] = useState<boolean>(true);
-  const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isSensorKey, setIsNewKey] = useState<string>('');
   const [isOpenNewTypeSensor, setIsOpenNewTypeSensor] = useState<boolean>(false);
+  const [isOpenDataOrganisation, setIsOpenDataOrganisation] = useState<boolean>(false);
+  const [isOpenDataObject, setIsOpenDataObject] = useState<boolean>(false);
+  const [isSelectOrganisation, setIsSelectOrganisation] = useState<string>([]);
+  const [isSelectObject, setIsSelectObject] = useState<string>([]);
+
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
   const [isModalObjectOpen, setIsModalObjectOpen] = useState<boolean>(false);
   const [isSelectedObjects, setIsSelectedObjects] = useState([]);
+  const dispatch: AppDispatch = useDispatch();
 
   const openModalNewModel = (sensorKey) => {
     setIsNewKey(sensorKey)
@@ -65,49 +80,56 @@ export default function Page(): React.JSX.Element {
   const closeObjectModal = () => {
     setIsModalObjectOpen(false);
   };
+  const closeDataOrganisation = () => {
+    setIsOpenDataOrganisation(false);
+  };
+
+  const closeDataObject = () => {
+    setIsOpenDataObject(false);
+  };
+
+  const openDataSelectObject= (iDObject) => {
+    setIsOpenDataObject(true);
+    const selectedObject = objects.find(obj => obj.id === iDObject)
+    setIsSelectObject(selectedObject)
+  };
+  const openDataOrganisation = (iDOrganisation) => {
+    setIsOpenDataOrganisation(true);
+    const selectedOrganisation = organizations.find(org => org.id === iDOrganisation)
+    setIsSelectOrganisation(selectedOrganisation)
+  };
+  const isResultSuccess = async () => {
+    // const allSensors = await sensorsClient.initNewAllTypeOfSensors(jsonData);
+    console.log('allSensors')
+  };
+
+  const onRegistrationObjectSuccess = async (data) => {
+    dispatch(addObjects(data));
+  };
+
 
   const initAllTypeSensors = async () => {
-
     const allSensors = await sensorsClient.initNewAllTypeOfSensors(jsonData);
     console.log(allSensors)
   };
 
+
   useEffect(() => {
-    Promise.all([fetchAllOrganizations(), fetchAllObjects(), fetchAllTypeSensors()])
-      .then(([organizationsData, objectsData, sensorsTypeData]) => {
+    const fetchData = async () => {
+      try {
+        const organizationsData:any = await fetchAllOrganizations();
         setOrganizations(organizationsData?.data?.allOrganizations);
-        setObjects(objectsData?.data?.allObjects);
-        if (sensorsTypeData?.data?.allSensors?.length > 0) {
-          setTypesSensors(sensorsTypeData?.data?.allSensors)
-          setShowInit(false)
-        }
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error('Ошибка при загрузке данных:', error);
-        setLoading(false);
-      });
-  }, []);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
+    };
 
-  async function isResultSuccess(sensorsTypeData) {
-    setTypesSensors(sensorsTypeData?.data?.allSensors)
-  }
+    fetchData();
+    if(typesSensors.length > 0 ) {
+      setShowInit(false)
+    }
+  }, [typesSensors]);
 
-  async function fetchAllOrganizations(): Promise<Customer[]> {
-    return await organizationClient.getAllOrganization();
-  }
-
-  async function fetchAllTypeSensors(): Promise<Customer[]> {
-    return await sensorsClient.getAllTypeOfSensors();
-  }
-
-  async function fetchAllObjects(): Promise<Customer[]> {
-    return await objectClient.getAllObjects();
-  }
-
-  async function onRegistrationSuccess(objectsData) {
-    setObjects(objectsData?.data.allObjects);
-  }
   async function onRegistrationOrganizationSuccess(organizationsData) {
     setOrganizations(organizationsData?.data?.allOrganizations);
   }
@@ -131,7 +153,7 @@ export default function Page(): React.JSX.Element {
       </Box>
       <ImportExportButtons onExportClick={onExportClick} onImportClick={onImportClick}/>
       <OrganizationsPaginationActionsTable rows={organizations}
-                                           onSelectedRowsChange={onSelectedRowsChange}/>
+                                           onSelectedRowsChange={onSelectedRowsChange} openDataOrganisation={openDataOrganisation}/>
       <Box display="flex" justifyContent="space-around">
         <Button variant="contained" onClick={openModal}>Добавить организацию</Button>
       </Box>
@@ -140,7 +162,7 @@ export default function Page(): React.JSX.Element {
       </Box>
       {(isSelectedObjects.length > 0 )? <Stack spacing={2}>
         <ImportExportButtons onExportClick={onExportClick} onImportClick={onImportClick}/>
-        <ObjectsPaginationActionsTable rows={onSelectedRowsObjects(objects, isSelectedObjects)}/>
+        <ObjectsPaginationActionsTable rows={onSelectedRowsObjects(objects, isSelectedObjects)} selectObject={openDataSelectObject}/>
         <Box display="flex" justifyContent="space-around">
           <Button variant="contained" onClick={openModalObject}>Добавить новый объект</Button>
         </Box></Stack>:<Stack><Typography variant="body1">Выберите организацию для отображения объектов</Typography></Stack>}
@@ -156,9 +178,15 @@ export default function Page(): React.JSX.Element {
       </Box>
       <ModalNewModelSensor isOpen={isOpenNewTypeSensor} onClose={closeModalNewModel} isSensorKey={isSensorKey}
                            isResultSuccess={isResultSuccess} isDisabled={isDisabled}/>
+
+      <ModalDataOrganisation isOpen={isOpenDataOrganisation} onClose={closeDataOrganisation} dataOrganisation={isSelectOrganisation} />
+
+      <ModalDataObject isOpen={isOpenDataObject} onClose={closeDataObject} dataObject={isSelectObject} />
+
       <ModalNewOrganization isOpen={isModalOpen} onClose={closeModal} onRegistrationSuccess={onRegistrationOrganizationSuccess}/>
+
       <ModalNewObject isOpenObject={isModalObjectOpen} onCloseObject={closeObjectModal}
-                      onRegistrationSuccess={onRegistrationSuccess} rowsOrganizations={organizations}/>
+                      onRegistrationObjectSuccess={onRegistrationObjectSuccess} rowsOrganizations={organizations}/>
     </Stack>
   );
 }

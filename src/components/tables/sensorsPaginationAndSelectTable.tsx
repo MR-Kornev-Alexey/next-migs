@@ -9,7 +9,7 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import TableHead from "@mui/material/TableHead";
 import {TablePaginationActions} from "@/components/tables/tablePaginationActions";
-import {Play, Trash} from "@phosphor-icons/react";
+import {GearFine, Play, Trash} from "@phosphor-icons/react";
 import {SvgSpinnersBarsScale} from "@/lib/animated-icon/chart-icon";
 import {LineMdPlayFilledToPauseTransition} from "@/lib/animated-icon/pause-icon";
 import TextField from "@mui/material/TextField";
@@ -118,7 +118,7 @@ export default function SensorsPaginationAndSelectTable({ rows, sendIDToStore, p
                 <TableCell style={{width: "7%", cursor: "pointer"}} align="center" onClick={() => {
                   sendIDToStore(row.id)
                 }}>
-                  Подробнее
+                  <GearFine size={24} />
                 </TableCell>
                 <TableCell style={{width: "5%", cursor: "pointer"}} align="center" onClick={() => {
                   deleteOneSensor(row.id)

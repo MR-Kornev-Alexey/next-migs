@@ -13,8 +13,11 @@ import {useSelection} from "@/hooks/use-selection";
 import {TablePaginationActions} from "@/components/tables/tablePaginationActions";
 import {SvgSpinnersBarsScale} from "@/lib/animated-icon/chart-icon";
 import {LineMdPlayFilledToPauseTransition} from "@/lib/animated-icon/pause-icon";
-import {ClipboardText, PlayPause, Siren} from "@phosphor-icons/react";
-import {sensorsClient} from "@/lib/sensors/sensors-client";
+import {ClipboardText, GearFine, PlayPause, Siren} from "@phosphor-icons/react";
+import {addSelectedSensor} from "@/store/selectedSensorReducer";
+import {useRouter} from "next/navigation";
+import {AppDispatch} from "@/store/store";
+import {useDispatch} from "react-redux";
 
 export default function AllSensorsPaginationAndSelectTable({
                                                              rows,
@@ -29,7 +32,8 @@ export default function AllSensorsPaginationAndSelectTable({
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const rowIds = React.useMemo(() => rows.map((customer) => customer.id), [rows]);
-
+  const router = useRouter();
+  const dispatch: AppDispatch = useDispatch();
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
   const {selectAll, deselectAll, selectOne, deselectOne, selected} = useSelection(rowIds);
   const [checkZet, setCheckZet] = React.useState(false);
@@ -63,6 +67,11 @@ export default function AllSensorsPaginationAndSelectTable({
   const setLastValueWithNull = (baseValue, zeroValue) => {
     return parseFloat((baseValue - zeroValue).toFixed(2)) || 0
   }
+  const sendIDToStore = (sensorData) => {
+    localStorage.setItem("sensorData", sensorData)
+    dispatch(addSelectedSensor(sensorData))
+    router.push("/dashboard/sensors/additional-data-sensor");
+  }
 
   return (
     <TableContainer component={Paper}>
@@ -82,17 +91,18 @@ export default function AllSensorsPaginationAndSelectTable({
                 }}
               />
             </TableCell>
-            <TableCell>Тип датчика</TableCell>
-            <TableCell>Марка датчика</TableCell>
-            <TableCell>Обозначение</TableCell>
-            <TableCell>Активность</TableCell>
-            <TableCell>Периодичность</TableCell>
-            <TableCell>Оповещение</TableCell>
+            <TableCell align="center">Тип датчика</TableCell>
+            <TableCell align="center">Марка датчика</TableCell>
+            <TableCell align="center">Обозначение</TableCell>
+            <TableCell align="center">Активность</TableCell>
+            <TableCell align="center">Период<br/>опроса</TableCell>
+            <TableCell align="center">Оповещение</TableCell>
             <TableCell align="center">Последнее значение (базовое)</TableCell>
             <TableCell align="center">Минимум (базовое)</TableCell>
             <TableCell align="center">Максимум (базовое)</TableCell>
             <TableCell align="center">Обнуление (базовое)</TableCell>
             <TableCell align="center">Контроль выбросов</TableCell>
+            <TableCell align="center">Подробнее</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -151,6 +161,7 @@ export default function AllSensorsPaginationAndSelectTable({
                 <TableCell align="center" style={{cursor: "pointer"}}
                            onClick={() => setNullOneSensor(row.id, row.requestSensorInfo[0].base_zero, row.requestSensorInfo[0].last_base_value)}>{row.requestSensorInfo[0].base_zero === null ? 0 : row.requestSensorInfo[0].base_zero}</TableCell>
                 <TableCell align="center" style={{cursor: "pointer"}}><ClipboardText size={24} onClick={()=> openTableAdditionalInfo(row.object_id, row.model)} /></TableCell>
+                <TableCell align="center" style={{cursor: "pointer"}} onClick={() => sendIDToStore(row.id)}><GearFine size={24} /></TableCell>
               </TableRow>
             );
           })}
